@@ -7,6 +7,7 @@ router.get('/empresas', traumaController.obtenerEmpresas);
 
 // Otras rutas existentes
 router.post('/guardar', traumaController.guardarCuestionario);
+router.post('/cuestionarios', traumaController.guardarCuestionario);
 router.get('/resultados', traumaController.obtenerResultados);
 
 module.exports = router;
