@@ -341,3 +341,45 @@ exports.getEmpresasConFormularioCompleto = async (req, res) => {
         });
     }
 };
+
+exports.someFunction = async (req, res) => {
+    try {
+        const empresaId = req.params.empresaId;
+
+        // Buscar la empresa por su ID
+        const empresa = await Empresa.findById(empresaId);
+
+        if (!empresa) {
+            return res.status(404).json({
+                success: false,
+                message: 'Empresa no encontrada'
+            });
+        }
+
+        // Guardar la cantidad de empleados y la muestra representativa en variables
+        const cantidadEmpleados = empresa.cantidadEmpleados;
+        const muestraRepresentativa = empresa.muestraRepresentativa;
+
+        // Usar las variables en tu lógica
+        if (cantidadEmpleados > 50) {
+            console.log(`La empresa tiene más de 50 empleados. Muestra representativa: ${muestraRepresentativa}`);
+        } else {
+            console.log(`La empresa tiene ${cantidadEmpleados} empleados.`);
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                cantidadEmpleados,
+                muestraRepresentativa
+            }
+        });
+    } catch (error) {
+        console.error('Error en someFunction:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};

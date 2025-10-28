@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Verificar si hay empresas disponibles
     if (!empresas || empresas.length === 0) {
       empresaSelect.innerHTML = '<option value="" disabled>No hay empresas disponibles</option>';
+      mostrarModalSinDatos('No hay empresas ni encuestas registradas en el sistema.');
       return;
     }
 
@@ -74,6 +75,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+// 1. Variables globales para almacenar los datos actuales
+let datosActuales = [];
+
 // Mostrar resultados del cuestionario de trauma
 function mostrarResultadosTrauma(data) {
   const resultadosContainer = document.getElementById('resultadosContainer');
@@ -84,6 +88,7 @@ function mostrarResultadosTrauma(data) {
   if (!data || data.length === 0) {
     respuestasList.innerHTML = '<div class="alert alert-info">No se encontraron respuestas para esta empresa</div>';
     resultadosContainer.classList.remove('d-none');
+    mostrarModalSinDatos('No se encontraron respuestas para esta empresa.');
     return;
   }
 
@@ -146,7 +151,59 @@ function mostrarResultadosTrauma(data) {
     `;
   }).join('');
 
+  datosActuales = data; // Guardar para PDF
+  document.getElementById('previsualizarPdfBtn').classList.toggle('d-none', !data || data.length === 0);
+  document.getElementById('descargarPdfBtn').classList.add('d-none');
+
   resultadosContainer.classList.remove('d-none');
+}
+
+// 2. Lógica para previsualizar PDF
+document.getElementById('previsualizarPdfBtn').addEventListener('click', () => {
+  const modal = new bootstrap.Modal(document.getElementById('previsualizacionPdf'));
+  const contenido = document.getElementById('contenidoPrevisualizacion');
+  contenido.innerHTML = generarHtmlPrevisualizacion(datosActuales);
+  modal.show();
+  document.getElementById('descargarPdfBtnModal').classList.remove('d-none');
+});
+
+// 3. Descargar PDF desde el modal
+document.getElementById('descargarPdfBtnModal').addEventListener('click', () => {
+  const doc = new window.jspdf.jsPDF();
+  let y = 10;
+  datosActuales.forEach(respuesta => {
+    doc.text(`Encuesta: ${formatDate(respuesta.createdAt)}`, 10, y);
+    y += 7;
+    respuesta.respuestas.forEach(r => {
+      doc.text(`${r.pregunta}: ${r.respuesta}`, 12, y);
+      y += 6;
+    });
+    doc.text('Razones:', 12, y);
+    y += 6;
+    respuesta.razonesEvaluacion.forEach(razon => {
+      doc.text(`- ${razon}`, 14, y);
+      y += 5;
+    });
+    y += 8;
+    if (y > 270) { doc.addPage(); y = 10; }
+  });
+  doc.save('resultados_trauma.pdf');
+});
+
+// 3. Función para generar HTML de previsualización
+function generarHtmlPrevisualizacion(data) {
+  if (!data || data.length === 0) return '<p>No hay datos para previsualizar.</p>';
+  return data.map(respuesta => `
+    <div>
+      <h5>Encuesta: ${formatDate(respuesta.createdAt)}</h5>
+      <ul>
+        ${respuesta.respuestas.map(r => `<li><b>${r.pregunta}:</b> ${r.respuesta}</li>`).join('')}
+      </ul>
+      <b>Razones:</b>
+      <ul>${respuesta.razonesEvaluacion.map(razon => `<li>${razon}</li>`).join('')}</ul>
+      <hr>
+    </div>
+  `).join('');
 }
 
 // Formatear fechas
@@ -161,5 +218,36 @@ function formatDate(date) {
 
 // Mostrar mensaje de error
 function mostrarMensajeError(mensaje) {
-  alert(mensaje); // Puedes usar un modal si prefieres
+  mostrarModalSinDatos(mensaje);
+}
+
+// Mostrar modal sin datos
+function mostrarModalSinDatos(mensaje) {
+  let modalDiv = document.getElementById('modalSinDatos');
+  if (!modalDiv) {
+    modalDiv = document.createElement('div');
+    modalDiv.id = 'modalSinDatos';
+    modalDiv.innerHTML = `
+      <div class="modal fade" tabindex="-1" id="sinDatosModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header bg-info text-dark">
+              <h5 class="modal-title">Sin datos disponibles</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <p id="sinDatosMensaje"></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modalDiv);
+  }
+  document.getElementById('sinDatosMensaje').textContent = mensaje;
+  const modal = new bootstrap.Modal(document.getElementById('sinDatosModal'));
+  modal.show();
 }

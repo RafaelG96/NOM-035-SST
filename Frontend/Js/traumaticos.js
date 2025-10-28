@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('traumaQuestionnaire');
     const evaluateBtn = document.getElementById('evaluateBtn');
     const resetBtn = document.getElementById('resetBtn');
-    const resultSection = document.getElementById('resultSection');
 
     // Configuración de la API
     const API_URL = 'http://localhost:3000/api/trauma/cuestionarios';
@@ -55,10 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
         additionalSections.forEach(section => {
             section.style.display = anyYesInSectionI ? 'block' : 'none';
         });
-        
-        if (!anyYesInSectionI) {
-            resultSection.classList.add('hidden-section');
-        }
     }
 
     async function handleFormSubmit(e) {
@@ -95,9 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 razonesEvaluacion: evaluacion.razonesEvaluacion,
                 empresa: companyName
             });
-            
-            resultSection.classList.remove('hidden-section');
-            resultSection.scrollIntoView({ behavior: 'smooth' });
             
         } catch (error) {
             console.error('Error en handleFormSubmit:', error);
@@ -192,48 +184,53 @@ document.addEventListener('DOMContentLoaded', function() {
             throw new Error(errorMessage);
         }
     }
+
     function showResults(data) {
-        const resultContainer = document.getElementById('resultContainer');
-        
         if (!data || !data.identificadorAnonimo) {
-            resultContainer.innerHTML = `
+            mostrarResultadoEnModal(`
                 <div class="alert alert-danger">
-                    Error: No se recibió un identificador válido del servidor.
+                    Error: No se recibió un identificador válido del servidor.<br>
                     Por favor contacte al administrador.
                 </div>
-            `;
+            `);
             return;
         }
 
         const identificador = data.identificadorAnonimo;
-        
+
+        // Mensaje de recomendación mejorado según el resultado
+        let recomendacion = '';
         if (data.requiereEvaluacion) {
-            resultContainer.innerHTML = `
-                <div class="alert alert-warning">
-                    <h4>Evaluación Profesional Recomendada</h4>
-                    <p><strong>Empresa:</strong> ${data.empresa}</p>
-                    <p>Según las respuestas proporcionadas, se recomienda una evaluación profesional.</p>
-                    ${data.razonesEvaluacion?.length ? `
-                        <h6>Razones:</h6>
-                        <ul>
-                            ${data.razonesEvaluacion.map(r => `<li>${r}</li>`).join('')}
-                        </ul>
-                    ` : ''}
-                    <p class="mt-3"><strong>Identificador anónimo:</strong> ${identificador}</p>
-                    <p><small>Guarde este identificador para futuras referencias.</small></p>
+            recomendacion = `
+                <div class="alert alert-warning mt-3">
+                    <b>Recomendación:</b> De acuerdo con sus respuestas, se recomienda encarecidamente que acuda a una <b>evaluación profesional en salud mental</b> lo antes posible.<br>
+                    El objetivo es brindarle apoyo y orientación especializada para su bienestar.<br>
+                    <i class="bi bi-info-circle"></i> Recuerde que la atención oportuna puede marcar una gran diferencia.
                 </div>
             `;
         } else {
-            resultContainer.innerHTML = `
-                <div class="alert alert-success">
-                    <h4>Resultados del Cuestionario</h4>
-                    <p><strong>Empresa:</strong> ${data.empresa}</p>
-                    <p>Según las respuestas proporcionadas, no se detecta necesidad de evaluación profesional en este momento.</p>
-                    <p class="mt-3"><strong>Identificador anónimo:</strong> ${identificador}</p>
-                    <p><small>Guarde este identificador para futuras referencias.</small></p>
+            recomendacion = `
+                <div class="alert alert-success mt-3">
+                    <b>Recomendación:</b> Según sus respuestas, <b>no se detecta necesidad inmediata de evaluación profesional</b> en este momento.<br>
+                    Si en el futuro experimenta situaciones de riesgo o malestar emocional, no dude en buscar apoyo.
                 </div>
             `;
         }
+
+        const resultadoHTML = `
+          <b>Empresa:</b> ${data.empresa}<br>
+          ${data.razonesEvaluacion?.length ? `
+            <h6>Razones:</h6>
+            <ul>
+                ${data.razonesEvaluacion.map(r => `<li>${r}</li>`).join('')}
+            </ul>
+          ` : ''}
+          <b>Identificador anónimo:</b> ${identificador}<br>
+          <small>Guarde este identificador para futuras referencias.</small>
+          ${recomendacion}
+        `;
+
+        mostrarResultadoEnModal(resultadoHTML);
     }
 
     function showAlert(type, message) {
@@ -255,11 +252,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetForm() {
         form.reset();
-        resultSection.classList.add('hidden-section');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         document.querySelectorAll('.question-group:not(:first-child)').forEach(section => {
             section.style.display = 'none';
         });
+    }
+
+    function mostrarResultadoEnModal(htmlResultado) {
+        document.getElementById('resultadoMensaje').innerHTML = htmlResultado;
+        const modal = new bootstrap.Modal(document.getElementById('resultadoModal'));
+        modal.show();
+
+        document.getElementById('aceptarResultadoBtn').onclick = function() {
+            window.location.href = '../index.html'; // Ajusta la ruta si es necesario
+        };
     }
 
     // Inicialmente ocultar secciones adicionales

@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw new Error(error.message || 'Error al cargar respuestas');
       }
 
-      const { data: respuestas } = await response.json();
-      mostrarResultados(respuestas);
+      const { data } = await response.json();
+      mostrarResultados(data);
 
     } catch (error) {
       console.error('Error:', error);
@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Mostrar resultados por empresa
-// Función para mostrar resultados (actualizada)
 async function mostrarResultados(data) {
   const { empresa, respuestas, resumen } = data;
   const resultadosContainer = document.getElementById('resultadosContainer');
@@ -80,9 +79,9 @@ async function mostrarResultados(data) {
   nombreEmpresaSpan.textContent = empresa?.nombreEmpresa || 'Empresa no especificada';
 
   // 2. Mostrar datos resumidos
-  totalEncuestas.textContent = resumen.totalEncuestas;
+  totalEncuestas.textContent = resumen.progreso; // Mostrar progreso en formato "2/53"
   puntajePromedio.textContent = resumen.puntajePromedio;
-  nivelRiesgo.innerHTML = `<span class="badge ${getBadgeClass(resumen.nivelRiesgo)}">${resumen.nivelRiesgo}</span>`;
+  nivelRiesgo.innerHTML = `<span class="badge ${getBadgeClass(resumen.nivelRiesgo)}">${resumen.nivelRiesgo || 'Nulo'}</span>`;
   
   // 3. Formatear y mostrar fechas
   const formatDate = (dateString) => {
@@ -124,36 +123,29 @@ async function mostrarResultados(data) {
       </div>
       
       <div class="card-body">
-        <div class="row">
-          <div class="col-md-4">
-            <div class="card mb-3 h-100">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-layer-group me-2"></i>Puntajes por Categoría</h6>
-              </div>
-              <div class="card-body">
-                ${renderizarPuntajes(respuesta.puntajesPorCategoria, 50)}
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-md-4">
-            <div class="card mb-3 h-100">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-sitemap me-2"></i>Puntajes por Dominio</h6>
-              </div>
-              <div class="card-body">
-                ${renderizarPuntajes(respuesta.puntajesPorDominio, 30)}
+        <div class="container">
+          <div class="row justify-content-center">
+            <!-- Categorías -->
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header bg-light">
+                  <h6 class="mb-0 text-center"><i class="fas fa-layer-group me-2"></i>Puntajes por Categoría</h6>
+                </div>
+                <div class="card-body">
+                  ${renderizarPuntajes(respuesta.puntajesPorCategoria, 50, 'categoria')}
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div class="col-md-4">
-            <div class="card mb-3 h-100">
-              <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Puntajes por Dimensión</h6>
-              </div>
-              <div class="card-body">
-                ${renderizarPuntajes(respuesta.puntajesPorDimension, 20)}
+
+            <!-- Dominios -->
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header bg-light">
+                  <h6 class="mb-0 text-center"><i class="fas fa-sitemap me-2"></i>Puntajes por Dominio</h6>
+                </div>
+                <div class="card-body">
+                  ${renderizarPuntajes(respuesta.puntajesPorDominio, 30, 'dominio')}
+                </div>
               </div>
             </div>
           </div>
@@ -293,25 +285,30 @@ function getAlertClass(nivel) {
 }
 
 // Mostrar barras de progreso
-function renderizarPuntajes(puntajes, maxValue = 50) {
+function renderizarPuntajes(puntajes, maxValue = 50, tipo = 'categoria') {
   if (!puntajes || Object.keys(puntajes).length === 0) {
     return '<p class="text-muted small">No hay datos disponibles</p>';
   }
 
   return Object.entries(puntajes).map(([nombre, valor]) => {
-    const porcentaje = Math.min(100, (valor / maxValue) * 100);
-    let barColor = 'bg-success';
-    if (porcentaje > 75) barColor = 'bg-danger';
-    else if (porcentaje > 50) barColor = 'bg-warning';
+    let nivel;
+    if (tipo === 'categoria') {
+      nivel = obtenerNivelPorCategoria(nombre, valor);
+    } else if (tipo === 'dominio') {
+      nivel = obtenerNivelPorDominio(nombre, valor);
+    }
+
+    const nivelClass = getNivelClass(nivel);
+    const barColor = getBarColor(nivel);
 
     return `
       <div class="mb-3">
         <div class="d-flex justify-content-between mb-1 small">
           <span>${nombre}</span>
-          <span class="fw-bold">${valor}</span>
+          <span class="fw-bold ${nivelClass}">${valor} (${nivel})</span>
         </div>
         <div class="progress" style="height: 10px;">
-          <div class="progress-bar ${barColor}" style="width: ${porcentaje}%;" aria-valuenow="${valor}" aria-valuemin="0" aria-valuemax="${maxValue}"></div>
+          <div class="progress-bar ${barColor}" style="width: 100%;" aria-valuenow="${valor}" aria-valuemin="0" aria-valuemax="${maxValue}"></div>
         </div>
       </div>
     `;
@@ -336,3 +333,278 @@ function mostrarMensajeError(mensaje) {
   document.getElementById('modalMensaje').textContent = mensaje;
   modal.show();
 }
+
+function mostrarModalSinDatos(mensaje) {
+  const modalTitulo = document.getElementById('modalTitulo');
+  const modalMensaje = document.getElementById('modalMensaje');
+  modalTitulo.textContent = 'Sin datos disponibles';
+  modalMensaje.textContent = mensaje;
+  const modal = new bootstrap.Modal(document.getElementById('mensajeModal'));
+  modal.show();
+}
+
+// Ejemplo de uso cuando no hay datos:
+function cargarEmpresas() {
+  fetch('/api/empresas/con-formulario-completo')
+    .then(res => res.json())
+    .then(data => {
+      if (!data || data.length === 0) {
+        mostrarModalSinDatos('No hay empresas ni encuestas registradas en el sistema.');
+        document.getElementById('loading').style.display = 'none';
+        return;
+      }
+      // ...código para mostrar empresas...
+    })
+    .catch(err => {
+      mostrarModalSinDatos('Error al cargar empresas.');
+      document.getElementById('loading').style.display = 'none';
+    });
+}
+
+function getNivelClass(nivel) {
+  switch (nivel.toLowerCase()) {
+    case 'nulo':
+      return 'text-secondary'; // Gris
+    case 'bajo':
+      return 'text-success'; // Verde
+    case 'medio':
+      return 'text-warning'; // Amarillo
+    case 'alto':
+      return 'text-danger'; // Rojo
+    case 'muy alto':
+      return 'text-danger fw-bold'; // Rojo con negrita
+    default:
+      return 'text-muted'; // Por defecto
+  }
+}
+
+function getBarColor(nivel) {
+  switch (nivel.toLowerCase()) {
+    case 'nulo':
+      return 'bg-secondary'; // Gris
+    case 'bajo':
+      return 'bg-success'; // Verde
+    case 'medio':
+      return 'bg-warning'; // Amarillo
+    case 'alto':
+      return 'bg-danger'; // Rojo
+    case 'muy alto':
+      return 'bg-danger'; // Rojo (puede ser más intenso si se desea)
+    default:
+      return 'bg-secondary'; // Por defecto, gris
+  }
+}
+
+function obtenerNivelPorCategoria(nombre, puntaje) {
+  const rangos = {
+    'Ambiente de trabajo': [5, 9, 11, 14],
+    'Factores propios de la actividad': [15, 30, 45, 80],
+    'Organización del tiempo de trabajo': [5, 9, 11, 14],
+    'Liderazgo y relaciones en el trabajo': [14, 29, 42, 58],
+    'Entorno organizacional': [10, 14, 18, 23]
+  };
+
+  const limites = rangos[nombre];
+  if (!limites) return 'Nulo';
+
+  if (puntaje < limites[0]) return 'Nulo';
+  if (puntaje < limites[1]) return 'Bajo';
+  if (puntaje < limites[2]) return 'Medio';
+  if (puntaje < limites[3]) return 'Alto';
+  return 'Muy alto';
+}
+
+function obtenerNivelPorDominio(nombre, puntaje) {
+  const rangos = {
+    'Condiciones en el ambiente de trabajo': [5, 9, 11, 14],
+    'Carga de trabajo': [15, 21, 27, 37],
+    'Falta de control sobre el trabajo': [11, 16, 21, 25],
+    'Jornada de trabajo': [1, 4, 6, 9],
+    'Interferencia en la relación trabajo-familia': [4, 8, 11, 14],
+    'Liderazgo': [9, 12, 16, 21],
+    'Relaciones en el trabajo': [10, 13, 17, 21],
+    'Violencia': [7, 10, 13, 16],
+    'Reconocimiento del desempeño': [10, 14, 18, 23],
+    'Insuficiente sentido de pertenencia e inestabilidad': [4, 8, 10, 12]
+  };
+
+  const limites = rangos[nombre];
+  if (!limites) return 'Nulo';
+
+  if (puntaje < limites[0]) return 'Nulo';
+  if (puntaje < limites[1]) return 'Bajo';
+  if (puntaje < limites[2]) return 'Medio';
+  if (puntaje < limites[3]) return 'Alto';
+  return 'Muy alto';
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const descargarPDFBtn = document.getElementById("descargarPDF");
+    const confirmarDescargaPDFBtn = document.getElementById("confirmarDescargaPDF");
+    const previsualizacionContenido = document.getElementById("previsualizacionContenido");
+    const previsualizacionModal = document.getElementById("previsualizacionModal");
+
+    // Mostrar previsualización en el modal
+    descargarPDFBtn.addEventListener("click", () => {
+        // Datos generales
+        const empresa = document.getElementById("nombreEmpresa").textContent;
+        const totalEncuestas = document.getElementById("totalEncuestas").textContent;
+        const puntajePromedio = document.getElementById("puntajePromedio").textContent;
+        const nivelRiesgo = document.getElementById("nivelRiesgo").textContent;
+        const fechaActualizacion = document.getElementById("fechaActualizacion").textContent;
+
+        // Validar si todas las encuestas están completas
+        const [completadas, total] = totalEncuestas.split("/").map(Number);
+        const faltanRespuestas = completadas < total;
+
+        // Generar contenido de previsualización
+        let html = `
+            <h5>Datos Generales</h5>
+            <ul>
+                <li><strong>Empresa:</strong> ${empresa}</li>
+                <li><strong>Total Encuestas:</strong> ${totalEncuestas}</li>
+                <li><strong>Puntaje Promedio:</strong> ${puntajePromedio}</li>
+                <li><strong>Nivel de Riesgo:</strong> ${nivelRiesgo}</li>
+                <li><strong>Última Actualización:</strong> ${fechaActualizacion}</li>
+            </ul>
+            <h5>Encuestas</h5>
+        `;
+
+        // Encuestas individuales
+        const respuestasList = document.querySelectorAll(".card-respuesta");
+        respuestasList.forEach((respuesta, index) => {
+            const fechaEncuesta = respuesta.querySelector(".card-header h5").textContent.trim();
+            const puntajesPorCategoria = respuesta.querySelectorAll(".col-md-6:nth-child(1) .mb-3");
+            const puntajesPorDominio = respuesta.querySelectorAll(".col-md-6:nth-child(2) .mb-3");
+
+            html += `
+                <h6>Encuesta ${index + 1}: ${fechaEncuesta}</h6>
+                <p><strong>Puntajes por Categoría:</strong></p>
+                <ul>
+            `;
+
+            puntajesPorCategoria.forEach((categoria) => {
+                const nombre = categoria.querySelector("span:first-child").textContent;
+                const valor = categoria.querySelector("span:last-child").textContent;
+                html += `<li>${nombre}: ${valor}</li>`;
+            });
+
+            html += `
+                </ul>
+                <p><strong>Puntajes por Dominio:</strong></p>
+                <ul>
+            `;
+
+            puntajesPorDominio.forEach((dominio) => {
+                const nombre = dominio.querySelector("span:first-child").textContent;
+                const valor = dominio.querySelector("span:last-child").textContent;
+                html += `<li>${nombre}: ${valor}</li>`;
+            });
+
+            html += `</ul>`;
+        });
+
+        // Agregar mensaje si faltan respuestas
+        if (faltanRespuestas) {
+            html += `
+                <div class="alert alert-warning mt-4">
+                    <strong>Nota:</strong> No se puede descargar el PDF porque faltan respuestas por completar.
+                </div>
+            `;
+            confirmarDescargaPDFBtn.disabled = true; // Deshabilitar el botón de descarga
+        } else {
+            confirmarDescargaPDFBtn.disabled = false; // Habilitar el botón de descarga
+        }
+
+        previsualizacionContenido.innerHTML = html;
+
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(previsualizacionModal);
+        modal.show();
+
+        // Forzar eliminación del backdrop y la clase modal-open al cerrar el modal
+        previsualizacionModal.addEventListener("hidden.bs.modal", () => {
+            document.body.classList.remove("modal-open");
+            const backdrop = document.querySelector(".modal-backdrop");
+            if (backdrop) {
+                backdrop.remove();
+            }
+        });
+    });
+
+    // Generar PDF al confirmar desde el modal
+    confirmarDescargaPDFBtn.addEventListener("click", () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Datos generales
+        const empresa = document.getElementById("nombreEmpresa").textContent;
+        const totalEncuestas = document.getElementById("totalEncuestas").textContent;
+        const puntajePromedio = document.getElementById("puntajePromedio").textContent;
+        const nivelRiesgo = document.getElementById("nivelRiesgo").textContent;
+        const fechaActualizacion = document.getElementById("fechaActualizacion").textContent;
+
+        doc.setFontSize(16);
+        doc.text("Resultados de Encuestas", 10, 10);
+
+        doc.setFontSize(12);
+        doc.text(`Empresa: ${empresa}`, 10, 20);
+        doc.text(`Total Encuestas: ${totalEncuestas}`, 10, 30);
+        doc.text(`Puntaje Promedio: ${puntajePromedio}`, 10, 40);
+        doc.text(`Nivel de Riesgo: ${nivelRiesgo}`, 10, 50);
+        doc.text(`Última Actualización: ${fechaActualizacion}`, 10, 60);
+
+        // Espaciado para las encuestas individuales
+        let y = 80;
+
+        // Encuestas individuales
+        const respuestasList = document.querySelectorAll(".card-respuesta");
+        respuestasList.forEach((respuesta, index) => {
+            if (y > 270) {
+                doc.addPage();
+                y = 10;
+            }
+
+            const fechaEncuesta = respuesta.querySelector(".card-header h5").textContent.trim();
+            const puntajesPorCategoria = respuesta.querySelectorAll(".col-md-6:nth-child(1) .mb-3");
+            const puntajesPorDominio = respuesta.querySelectorAll(".col-md-6:nth-child(2) .mb-3");
+
+            doc.setFontSize(14);
+            doc.text(`Encuesta ${index + 1}: ${fechaEncuesta}`, 10, y);
+            y += 10;
+
+            doc.setFontSize(12);
+            doc.text("Puntajes por Categoría:", 10, y);
+            y += 10;
+
+            puntajesPorCategoria.forEach((categoria) => {
+                const nombre = categoria.querySelector("span:first-child").textContent;
+                const valor = categoria.querySelector("span:last-child").textContent;
+
+                doc.text(`- ${nombre}: ${valor}`, 10, y);
+                y += 10;
+            });
+
+            doc.text("Puntajes por Dominio:", 10, y);
+            y += 10;
+
+            puntajesPorDominio.forEach((dominio) => {
+                const nombre = dominio.querySelector("span:first-child").textContent;
+                const valor = dominio.querySelector("span:last-child").textContent;
+
+                doc.text(`- ${nombre}: ${valor}`, 10, y);
+                y += 10;
+            });
+
+            y += 10; // Espaciado entre encuestas
+        });
+
+        // Guardar el PDF
+        doc.save("Resultados.pdf");
+    });
+});
+
+// Soluciona el problema de scroll al cerrar cualquier modal de Bootstrap
+document.addEventListener('hidden.bs.modal', function () {
+  document.body.style.overflow = '';
+});

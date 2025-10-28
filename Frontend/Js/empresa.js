@@ -34,6 +34,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const handler = () => {
             if (callback) callback();
             btnAceptar.removeEventListener('click', handler);
+
+            // Redirigir al index.html si es un mensaje de éxito
+            if (esExito) {
+                window.location.href = '../index.html';
+            }
         };
         
         // Limpiar eventos previos y agregar el nuevo
