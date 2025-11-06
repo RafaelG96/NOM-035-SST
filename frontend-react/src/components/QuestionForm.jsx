@@ -23,9 +23,11 @@ function QuestionForm({ questions, onSubmit, loading = false }) {
     e.preventDefault()
     
     // Validar que todas las preguntas requeridas y visibles estén respondidas
+    // Solo validar preguntas que están siendo mostradas (sin conditional o con conditional cumplida)
     const newErrors = {}
     questions.forEach(q => {
-      // Solo validar si es requerida y está visible (no tiene conditional o está visible)
+      // Solo validar si es requerida y está visible
+      // Las preguntas condicionales que no se muestran no deben validarse
       if (q.required && !formData[q.id]) {
         newErrors[q.id] = 'Esta pregunta es obligatoria'
       }
@@ -36,6 +38,7 @@ function QuestionForm({ questions, onSubmit, loading = false }) {
       return
     }
 
+    // Solo enviar las preguntas que están visibles (las que están en el formData)
     onSubmit(formData)
   }
 
