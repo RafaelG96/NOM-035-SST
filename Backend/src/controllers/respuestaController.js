@@ -74,15 +74,27 @@ const guardarRespuesta = async (req, res) => {
       [65, 66, 67, 68].forEach(p => delete preguntasProcesadas[`pregunta${p}`]);
     }
 
-    // Validar preguntas obligatorias (1-64)
+    // Validar preguntas obligatorias (1-64 siempre obligatorias)
+    // Las preguntas 1-54 son obligatorias siempre
+    // Las preguntas 55-64 son obligatorias siempre (Violencia)
+    // Las preguntas 65-68 son condicionales (solo si servicioClientes)
+    // Las preguntas 69-72 son condicionales (solo si esJefe)
     const preguntasObligatorias = Array.from({length: 64}, (_, i) => `pregunta${i+1}`);
-    const faltantes = preguntasObligatorias.filter(p => !(p in preguntasProcesadas));
+    const faltantes = preguntasObligatorias.filter(p => {
+      const preguntaNumero = parseInt(p.replace('pregunta', ''));
+      // Las preguntas 1-64 son obligatorias siempre
+      return preguntaNumero <= 64 && !(p in preguntasProcesadas);
+    });
     
     if (faltantes.length > 0) {
+      console.log('Preguntas faltantes:', faltantes);
+      console.log('Preguntas procesadas:', Object.keys(preguntasProcesadas));
       return res.status(400).json({
         success: false,
         error: 'Faltan respuestas obligatorias',
-        preguntasFaltantes: faltantes.map(p => parseInt(p.replace('pregunta', '')))
+        preguntasFaltantes: faltantes.map(p => parseInt(p.replace('pregunta', ''))),
+        totalPreguntasEnviadas: Object.keys(preguntasProcesadas).length,
+        preguntasEnviadas: Object.keys(preguntasProcesadas).sort()
       });
     }
 
