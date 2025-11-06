@@ -321,23 +321,39 @@ exports.getEmpresasConFormularioBasico = async (req, res) => {
 };
 
 // Nuevo método para obtener empresas con formulario completo
-// Modificado para obtener empresas con formulario completo (51+ empleados) y al menos 1 formulario resuelto
+// Modificado para obtener empresas con formulario completo (51+ empleados) que tengan al menos 1 formulario resuelto
 exports.getEmpresasConFormularioCompleto = async (req, res) => {
     try {
-        // Buscar empresas con formulario completo (51+ empleados) que tengan al menos 1 formulario resuelto
-        const empresas = await Empresa.find({
-            tipoFormulario: 'completo',
-            contador: { $gte: 1 } // Al menos 1 formulario resuelto
+        // Primero, obtener empresas con formulario completo (51+ empleados)
+        const todasLasEmpresas = await Empresa.find({
+            tipoFormulario: 'completo'
         })
         .select('nombreEmpresa cantidadEmpleados _id muestraRepresentativa contador tipoFormulario')
-        .sort({ nombreEmpresa: 1, cantidadEmpleados: 1 })
         .lean();
 
-        console.log('Empresas con formulario completo y al menos 1 formulario resuelto:', empresas); // Depuración
+        // Obtener todos los empresaIds únicos que tienen respuestas en la colección 'respuestas'
+        const empresasConRespuestas = await Respuesta.distinct('empresaId');
+        console.log('Empresas IDs con respuestas guardadas:', empresasConRespuestas.map(id => String(id)));
+
+        // Filtrar empresas que tienen respuestas guardadas
+        const empresasFiltradas = todasLasEmpresas.filter(empresa => {
+            const empresaIdStr = String(empresa._id);
+            const tieneRespuestas = empresasConRespuestas.some(id => String(id) === empresaIdStr);
+            console.log(`Empresa ${empresa.nombreEmpresa} (${empresaIdStr}): ${tieneRespuestas ? 'TIENE' : 'NO tiene'} respuestas`);
+            return tieneRespuestas;
+        });
+
+        // Ordenar por nombre
+        empresasFiltradas.sort((a, b) => a.nombreEmpresa.localeCompare(b.nombreEmpresa));
+
+        console.log(`Empresas con formulario completo y respuestas: ${empresasFiltradas.length}`);
+        empresasFiltradas.forEach(emp => {
+            console.log(`  - ${emp.nombreEmpresa} (ID: ${emp._id}, Empleados: ${emp.cantidadEmpleados})`);
+        });
 
         res.status(200).json({
             success: true,
-            data: empresas
+            data: empresasFiltradas
         });
     } catch (error) {
         console.error('Error al obtener empresas con formulario completo:', error);

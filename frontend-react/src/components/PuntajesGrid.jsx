@@ -7,26 +7,30 @@ function PuntajesGrid({ puntajes, tipo = 'categoria' }) {
 
   const obtenerMaximoParaTipo = (nombre, tipo) => {
     if (tipo === 'categoria') {
+      // Máximos según la estructura de 72 preguntas del cuestionario de Entorno
+      // Cada pregunta puede tener máximo 4 puntos
       const maximos = {
-        'Ambiente de trabajo': 14,
-        'Factores propios de la actividad': 80,
-        'Organización del tiempo de trabajo': 14,
-        'Liderazgo y relaciones en el trabajo': 58,
-        'Entorno organizacional': 23
+        'Ambiente de trabajo': 20, // 5 preguntas × 4 = 20
+        'Factores propios de la actividad': 100, // 25 preguntas × 4 = 100 (11 básicas + 4 condicionales de Carga de trabajo + 10 de Falta de control)
+        'Organización del tiempo de trabajo': 16, // 4 preguntas × 4 = 16 (2 jornada + 4 trabajo-familia)
+        'Liderazgo y relaciones en el trabajo': 72, // 18 preguntas × 4 = 72 (9 liderazgo + 9 relaciones + 8 violencia)
+        'Entorno organizacional': 40 // 10 preguntas × 4 = 40 (6 reconocimiento + 4 pertenencia)
       }
       return maximos[nombre] || 50
     } else if (tipo === 'dominio') {
+      // Máximos por dominio según la estructura de 72 preguntas
+      // Cada pregunta puede tener máximo 4 puntos
       const maximos = {
-        'Condiciones en el ambiente de trabajo': 14,
-        'Carga de trabajo': 37,
-        'Falta de control sobre el trabajo': 25,
-        'Jornada de trabajo': 9,
-        'Interferencia en la relación trabajo-familia': 14,
-        'Liderazgo': 21,
-        'Relaciones en el trabajo': 21,
-        'Violencia': 16,
-        'Reconocimiento del desempeño': 23,
-        'Insuficiente sentido de pertenencia e inestabilidad': 12
+        'Condiciones en el ambiente de trabajo': 20, // 5 preguntas × 4 = 20
+        'Carga de trabajo': 60, // 15 preguntas × 4 = 60 (11 básicas + 4 condicionales 65-68)
+        'Falta de control sobre el trabajo': 40, // 10 preguntas × 4 = 40
+        'Jornada de trabajo': 8, // 2 preguntas × 4 = 8
+        'Interferencia en la relación trabajo-familia': 16, // 4 preguntas × 4 = 16
+        'Liderazgo': 36, // 9 preguntas × 4 = 36
+        'Relaciones en el trabajo': 36, // 9 preguntas × 4 = 36 (5 básicas + 4 condicionales 69-72)
+        'Violencia': 32, // 8 preguntas × 4 = 32
+        'Reconocimiento del desempeño': 24, // 6 preguntas × 4 = 24
+        'Insuficiente sentido de pertenencia e inestabilidad': 16 // 4 preguntas × 4 = 16
       }
       return maximos[nombre] || 30
     }

@@ -14,11 +14,8 @@ function ResultadosEntorno() {
 
   useEffect(() => {
     loadEmpresas()
-    // Si hay empresaId en localStorage, usarlo como selección predeterminada
-    if (empresaId) {
-      setEmpresaSeleccionada(empresaId)
-      loadResultados(empresaId)
-    }
+    // NO usar localStorage automáticamente - esperar a que se carguen las empresas
+    // y verificar que la empresa del localStorage tenga respuestas
   }, [])
 
   useEffect(() => {
@@ -33,10 +30,38 @@ function ResultadosEntorno() {
     try {
       setLoadingEmpresas(true)
       const response = await empresaAPI.getConFormularioCompleto()
+      let empresasData = []
       if (response.data && response.data.data) {
-        setEmpresas(response.data.data)
+        empresasData = response.data.data
       } else if (response.data && Array.isArray(response.data)) {
-        setEmpresas(response.data)
+        empresasData = response.data
+      }
+      
+      setEmpresas(empresasData)
+      
+      // Log para debug: mostrar IDs de empresas disponibles
+      console.log('Empresas cargadas para selector:', empresasData.map(emp => ({
+        _id: emp._id,
+        nombre: emp.nombreEmpresa,
+        empleados: emp.cantidadEmpleados
+      })))
+      
+      // Si hay empresas cargadas, seleccionar la primera automáticamente
+      // (ya que solo se cargan empresas que tienen respuestas guardadas)
+      if (empresasData.length > 0) {
+        const primeraEmpresa = empresasData[0]
+        console.log('Seleccionando automáticamente la primera empresa con respuestas:', {
+          _id: primeraEmpresa._id,
+          nombre: primeraEmpresa.nombreEmpresa
+        })
+        setEmpresaSeleccionada(primeraEmpresa._id)
+        // NO usar localStorage aquí, solo usar las empresas que realmente tienen respuestas
+      } else {
+        // Si no hay empresas con respuestas, limpiar el localStorage si existe
+        if (empresaId) {
+          console.log('No hay empresas con respuestas. Limpiando localStorage con ID:', empresaId)
+          localStorage.removeItem('empresaId')
+        }
       }
     } catch (error) {
       console.error('Error al cargar empresas:', error)
@@ -55,9 +80,23 @@ function ResultadosEntorno() {
     try {
       setLoading(true)
       const response = await psicosocialAPI.getResultadosEntorno(id)
-      setResultados(response.data)
+      console.log('Respuesta completa del backend:', response)
+      console.log('Datos en response.data:', response.data)
+      
+      // Verificar estructura de respuesta
+      if (response.data && response.data.data) {
+        console.log('Estructura correcta - data.data:', response.data.data)
+        setResultados(response.data)
+      } else if (response.data && response.data.success) {
+        console.log('Estructura con success:', response.data)
+        setResultados(response.data)
+      } else {
+        console.warn('Estructura inesperada:', response.data)
+        setResultados(response.data)
+      }
     } catch (error) {
       console.error('Error al cargar resultados:', error)
+      console.error('Error response:', error.response)
       setResultados(null)
       if (error.response?.status !== 404) {
         alert('Error al cargar los resultados: ' + (error.message || 'Error desconocido'))
@@ -69,9 +108,24 @@ function ResultadosEntorno() {
 
   const handleEmpresaChange = (e) => {
     const selectedId = e.target.value
-    setEmpresaSeleccionada(selectedId)
-    if (selectedId) {
-      localStorage.setItem('empresaId', selectedId)
+    const empresaSeleccionada = empresas.find(emp => emp._id === selectedId)
+    
+    console.log('Empresa seleccionada:', {
+      selectedId,
+      empresa: empresaSeleccionada,
+      nombre: empresaSeleccionada?.nombreEmpresa
+    })
+    
+    // Solo establecer si la empresa existe en la lista (ya que solo mostramos empresas con respuestas)
+    if (selectedId && empresaSeleccionada) {
+      setEmpresaSeleccionada(selectedId)
+      // NO guardar en localStorage para resultados de entorno
+      // El localStorage puede tener IDs de empresas sin respuestas
+      // localStorage.setItem('empresaId', selectedId)
+      console.log(`Empresa ${empresaSeleccionada.nombreEmpresa} seleccionada (ID: ${selectedId})`)
+    } else {
+      console.warn('Empresa seleccionada no encontrada en la lista:', selectedId)
+      setEmpresaSeleccionada('')
     }
   }
 
@@ -184,6 +238,14 @@ function ResultadosEntorno() {
               {/* Mostrar resultados si existen */}
               {!loading && resultados && resultados.data && (() => {
                 const { empresa, respuestas, resumen } = resultados.data
+
+                // Debug: Log para verificar la estructura de datos
+                console.log('Datos recibidos:', { empresa, respuestas, resumen })
+                if (respuestas && respuestas.length > 0) {
+                  console.log('Primera respuesta:', respuestas[0])
+                  console.log('Puntajes por categoría:', respuestas[0]?.puntajesPorCategoria)
+                  console.log('Puntajes por dominio:', respuestas[0]?.puntajesPorDominio)
+                }
 
                 if (!respuestas || respuestas.length === 0) {
                   return (
@@ -317,10 +379,17 @@ function ResultadosEntorno() {
                                   </h6>
                                 </div>
                                 <div className="card-body">
-                                  <PuntajesGrid 
-                                    puntajes={respuesta.puntajesPorCategoria} 
-                                    tipo="categoria"
-                                  />
+                                  {respuesta.puntajesPorCategoria && Object.keys(respuesta.puntajesPorCategoria).length > 0 ? (
+                                    <PuntajesGrid 
+                                      puntajes={respuesta.puntajesPorCategoria} 
+                                      tipo="categoria"
+                                    />
+                                  ) : (
+                                    <div className="alert alert-warning">
+                                      <p className="mb-0">No hay datos de categorías disponibles para esta respuesta.</p>
+                                      <small>Puntaje total: {respuesta.puntajeTotal || 0}</small>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -334,10 +403,17 @@ function ResultadosEntorno() {
                                   </h6>
                                 </div>
                                 <div className="card-body">
-                                  <PuntajesGrid 
-                                    puntajes={respuesta.puntajesPorDominio} 
-                                    tipo="dominio"
-                                  />
+                                  {respuesta.puntajesPorDominio && Object.keys(respuesta.puntajesPorDominio).length > 0 ? (
+                                    <PuntajesGrid 
+                                      puntajes={respuesta.puntajesPorDominio} 
+                                      tipo="dominio"
+                                    />
+                                  ) : (
+                                    <div className="alert alert-warning">
+                                      <p className="mb-0">No hay datos de dominios disponibles para esta respuesta.</p>
+                                      <small>Puntaje total: {respuesta.puntajeTotal || 0}</small>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
