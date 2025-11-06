@@ -100,9 +100,14 @@ const guardarRespuesta = async (req, res) => {
     // Determinar nivel de riesgo y recomendaciones
     const { nivel, recomendacion } = obtenerRecomendaciones(determinarNivelRiesgo(puntajeTotal));
 
+    // Convertir empresaId a ObjectId si viene como string
+    const empresaObjectId = mongoose.Types.ObjectId.isValid(empresaId) 
+      ? new mongoose.Types.ObjectId(empresaId) 
+      : empresaId;
+
     // Crear y guardar respuesta
     const nuevaRespuesta = new Respuesta({
-      empresaId,
+      empresaId: empresaObjectId,
       preguntas: preguntasProcesadas,
       puntajeTotal,
       puntajesPorCategoria,
@@ -113,7 +118,25 @@ const guardarRespuesta = async (req, res) => {
       recomendacion
     });
 
+    console.log('Guardando respuesta:', {
+      empresaIdOriginal: empresaId,
+      empresaIdConvertido: empresaObjectId,
+      empresaIdString: String(empresaObjectId),
+      puntajeTotal,
+      categorias: Object.keys(puntajesPorCategoria),
+      dominios: Object.keys(puntajesPorDominio),
+      servicioClientes: servicioClientesBool,
+      esJefe: esJefeBool
+    });
+
     await nuevaRespuesta.save();
+    
+    console.log('Respuesta guardada exitosamente:', {
+      respuestaId: nuevaRespuesta._id,
+      empresaId: String(nuevaRespuesta.empresaId),
+      puntajeTotal: nuevaRespuesta.puntajeTotal,
+      nivelRiesgo: nuevaRespuesta.nivelRiesgo
+    });
     
     res.status(201).json({
       success: true,
@@ -179,10 +202,111 @@ const getRespuestasByEmpresa = async (req, res) => {
     // Determinar el objetivo de encuestas (muestra representativa o cantidad total de empleados)
     const objetivoEncuestas = empresa.muestraRepresentativa || empresa.cantidadEmpleados;
 
-    // Obtener las respuestas asociadas a la empresa
-    const respuestas = await Respuesta.find({ empresaId })
+    // Convertir empresaId a ObjectId para la búsqueda
+    const empresaObjectId = new mongoose.Types.ObjectId(empresaId);
+    
+    // Verificar el nombre de la colección que está usando el modelo
+    console.log(`Modelo Respuesta usando colección: ${Respuesta.collection.name}`);
+    console.log(`Buscando en colección: ${Respuesta.collection.name}`);
+    
+    // Intentar búsqueda con ObjectId
+    let respuestas = await Respuesta.find({ empresaId: empresaObjectId })
       .sort({ createdAt: -1 })
       .lean();
+    
+    // Si no encuentra, intentar también buscar directamente en la colección usando el driver nativo
+    if (respuestas.length === 0) {
+      console.log('Intentando búsqueda directa en la colección "respuestas"...');
+      const db = mongoose.connection.db;
+      const respuestasCollection = db.collection('respuestas');
+      const respuestasDirectas = await respuestasCollection.find({ 
+        empresaId: empresaObjectId 
+      }).toArray();
+      console.log(`Respuestas encontradas en búsqueda directa: ${respuestasDirectas.length}`);
+      
+      if (respuestasDirectas.length > 0) {
+        // Convertir ObjectId de MongoDB a string para comparar
+        respuestasDirectas.forEach((r, idx) => {
+          console.log(`  Respuesta ${idx + 1}: empresaId=${String(r.empresaId)}, tipo=${typeof r.empresaId}`);
+        });
+      }
+    }
+    
+    // Si no se encuentran respuestas, intentar búsqueda adicional como string
+    if (respuestas.length === 0) {
+      console.log(`No se encontraron respuestas con ObjectId, intentando búsqueda como string...`);
+      respuestas = await Respuesta.find({ empresaId: empresaId })
+        .sort({ createdAt: -1 })
+        .lean();
+      
+      // Buscar todas las respuestas para ver qué empresas tienen respuestas
+      const todasLasRespuestas = await Respuesta.find({})
+        .select('empresaId createdAt puntajeTotal')
+        .lean();
+      
+      console.log(`Total de respuestas en la BD: ${todasLasRespuestas.length}`);
+      console.log('Empresas con respuestas guardadas:');
+      
+      // Obtener información de empresas para cada respuesta
+      const empresasIds = [...new Set(todasLasRespuestas.map(r => String(r.empresaId)))];
+      const empresas = await Empresa.find({ _id: { $in: empresasIds.map(id => new mongoose.Types.ObjectId(id)) } })
+        .select('nombreEmpresa cantidadEmpleados')
+        .lean();
+      
+      const empresasMap = {};
+      empresas.forEach(emp => {
+        empresasMap[String(emp._id)] = emp;
+      });
+      
+      todasLasRespuestas.forEach((r, idx) => {
+        const empresaIdStr = String(r.empresaId);
+        const empresaInfo = empresasMap[empresaIdStr] || { nombreEmpresa: 'Empresa no encontrada' };
+        console.log(`  ${idx + 1}. empresaId: ${empresaIdStr}, Empresa: ${empresaInfo.nombreEmpresa}, Puntaje: ${r.puntajeTotal}, Fecha: ${r.createdAt}`);
+      });
+      
+      // Agrupar por empresaId para ver cuántas respuestas tiene cada empresa
+      const respuestasPorEmpresa = {};
+      todasLasRespuestas.forEach(r => {
+        const empresaIdStr = String(r.empresaId);
+        if (!respuestasPorEmpresa[empresaIdStr]) {
+          respuestasPorEmpresa[empresaIdStr] = {
+            count: 0,
+            nombre: empresasMap[empresaIdStr]?.nombreEmpresa || 'Desconocida'
+          };
+        }
+        respuestasPorEmpresa[empresaIdStr].count++;
+      });
+      console.log('Resumen de respuestas por empresa:', JSON.stringify(respuestasPorEmpresa, null, 2));
+      
+      // Mostrar qué ID se está buscando vs qué IDs hay en la BD
+      console.log(`\n=== COMPARACIÓN DE IDs ===`);
+      console.log(`ID buscado: ${empresaId} (${empresaObjectId})`);
+      console.log(`IDs encontrados en BD: ${empresasIds.join(', ')}`);
+      const matchEncontrado = empresasIds.find(id => id === empresaId || id === String(empresaObjectId));
+      if (matchEncontrado) {
+        console.log(`✅ MATCH ENCONTRADO: ${matchEncontrado}`);
+      } else {
+        console.log(`❌ NO HAY MATCH - El ID buscado no coincide con ningún ID en la BD`);
+      }
+    }
+    
+    console.log(`Buscando respuestas para empresaId: ${empresaId} (ObjectId: ${empresaObjectId})`);
+    console.log(`Respuestas encontradas: ${respuestas.length}`);
+    if (respuestas.length > 0) {
+      console.log('Primera respuesta encontrada:', {
+        _id: respuestas[0]._id,
+        empresaId: respuestas[0].empresaId,
+        empresaIdType: typeof respuestas[0].empresaId,
+        empresaIdString: String(respuestas[0].empresaId),
+        puntajeTotal: respuestas[0].puntajeTotal,
+        tienePuntajesPorCategoria: !!respuestas[0].puntajesPorCategoria,
+        tienePuntajesPorDominio: !!respuestas[0].puntajesPorDominio,
+        keysPuntajesPorCategoria: respuestas[0].puntajesPorCategoria ? Object.keys(respuestas[0].puntajesPorCategoria) : [],
+        keysPuntajesPorDominio: respuestas[0].puntajesPorDominio ? Object.keys(respuestas[0].puntajesPorDominio) : []
+      });
+    } else {
+      console.log(`No se encontraron respuestas para la empresa ${empresaId}`);
+    }
 
     // Calcular datos resumidos
     const sumaPuntajes = respuestas.reduce((sum, res) => sum + (res.puntajeTotal || 0), 0);
