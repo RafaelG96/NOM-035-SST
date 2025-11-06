@@ -249,6 +249,14 @@ document.addEventListener('DOMContentLoaded', function () {
         mensajeModal.show();
     }
 
+    // Redirigir al index al aceptar el modal de agradecimiento
+    const aceptarBtn = document.getElementById('modalAceptar');
+    if (aceptarBtn) {
+        aceptarBtn.addEventListener('click', function () {
+            window.location.href = '../index.html'; // Ajusta la ruta si es necesario
+        });
+    }
+
     // Actualizar mensaje del contador
     function updateCounterMessage(count, empresa, id) {
         const counterMsg = `Eres la persona número ${count} en ingresar al cuestionario de la empresa ${empresa} con identificador ${id}. Por favor no salgas del formulario hasta terminar o perderás tu participación.`;
@@ -300,4 +308,21 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
+
+    function validarPreguntaActual() {
+      const respuesta = obtenerRespuestaActual();
+      if (!respuesta) {
+        mostrarModalError('Debes responder la pregunta antes de continuar.');
+        return false; // Evita avanzar
+      }
+      return true;
+    }
+
+    siguienteBtn.addEventListener('click', function(e) {
+      if (!validarPreguntaActual()) {
+        e.preventDefault(); // Evita avanzar o recargar
+        return;
+      }
+      // ...código para avanzar a la siguiente pregunta...
+    });
 });

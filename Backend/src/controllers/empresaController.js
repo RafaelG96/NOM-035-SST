@@ -17,30 +17,53 @@ exports.createEmpresa = async (req, res) => {
         }
 
         const cantidad = parseInt(cantidadEmpleados);
-        if (cantidad > 50 && !muestraRepresentativa) {
+        
+        // Validar que la cantidad sea válida
+        if (isNaN(cantidad) || cantidad < 1) {
             return res.status(400).json({
                 success: false,
-                message: 'Empresas con más de 50 empleados requieren muestra representativa'
+                message: 'La cantidad de empleados debe ser un número mayor a 0'
             });
         }
 
+        // El tipoFormulario se asigna automáticamente en el modelo según cantidadEmpleados
+        // No aceptamos tipoFormulario del frontend para evitar inconsistencias
         const empresaData = {
             nombreEmpresa: nombreEmpresa.trim(),
             cantidadEmpleados: cantidad,
             clave: clave.trim()
         };
 
+        // Para empresas con más de 50 empleados, se requiere muestra representativa
         if (cantidad > 50) {
-            empresaData.muestraRepresentativa = parseInt(muestraRepresentativa);
+            if (!muestraRepresentativa) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Empresas con más de 50 empleados requieren muestra representativa'
+                });
+            }
+            const muestra = parseInt(muestraRepresentativa);
+            if (isNaN(muestra) || muestra < 1) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'La muestra representativa debe ser un número mayor a 0'
+                });
+            }
+            empresaData.muestraRepresentativa = muestra;
         }
 
+        // Crear la empresa - el modelo asignará automáticamente:
+        // - tipoFormulario: 'completo' si cantidadEmpleados > 50, 'basico' si <= 50
+        // - preguntasRequeridas: 76 preguntas para completo, 46 para básico
         const nuevaEmpresa = new Empresa(empresaData);
         const empresaGuardada = await nuevaEmpresa.save();
+
+        console.log(`✅ Empresa creada: ${empresaGuardada.nombreEmpresa} - Tipo: ${empresaGuardada.tipoFormulario} - Empleados: ${empresaGuardada.cantidadEmpleados}`);
 
         res.status(201).json({
             success: true,
             data: empresaGuardada,
-            message: `Empresa creada con formulario ${empresaGuardada.tipoFormulario}`
+            message: `Empresa creada con formulario ${empresaGuardada.tipoFormulario} (${empresaGuardada.cantidadEmpleados} empleados)`
         });
 
     } catch (error) {
@@ -263,27 +286,25 @@ exports.getFormConfig = async (req, res) => {
 };
 
 // Agrega este nuevo método al controlador
+// Modificado para obtener empresas con formulario básico (1-50 empleados) y al menos 1 formulario resuelto
 exports.getEmpresasConFormularioBasico = async (req, res) => {
     try {
-        // Obtener todas las empresas con respuestas en la colección resultadopsicosocials
-        const empresasConRespuestas = await ResultadoPsicosocial.distinct('empresaId');
-
-        // Filtrar IDs válidos
-        const validIds = empresasConRespuestas.filter(id => mongoose.Types.ObjectId.isValid(id));
-
-        // Validar que haya IDs válidos
-        if (!validIds || validIds.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'No se encontraron empresas con formulario básico.'
-            });
-        }
-
-        // Filtrar solo empresas con formulario básico
+        // Buscar empresas con formulario básico (1-50 empleados) que tengan al menos 1 formulario resuelto
         const empresas = await Empresa.find({
-            _id: { $in: validIds },
-            tipoFormulario: 'basico'
-        }).select('nombreEmpresa cantidadEmpleados _id');
+            $or: [
+                { tipoFormulario: 'basico' },
+                { 
+                    cantidadEmpleados: { $lte: 50 },
+                    tipoFormulario: { $exists: false } // Si no tiene tipoFormulario pero tiene <=50 empleados, incluirla
+                }
+            ],
+            contador: { $gte: 1 } // Al menos 1 formulario resuelto
+        })
+        .select('nombreEmpresa cantidadEmpleados _id contador tipoFormulario')
+        .sort({ nombreEmpresa: 1, cantidadEmpleados: 1 })
+        .lean();
+
+        console.log('Empresas con formulario básico y al menos 1 formulario resuelto:', empresas); // Depuración
 
         res.status(200).json({
             success: true,
@@ -300,33 +321,19 @@ exports.getEmpresasConFormularioBasico = async (req, res) => {
 };
 
 // Nuevo método para obtener empresas con formulario completo
+// Modificado para obtener empresas con formulario completo (51+ empleados) y al menos 1 formulario resuelto
 exports.getEmpresasConFormularioCompleto = async (req, res) => {
     try {
-        // Obtener todas las empresas con respuestas en la colección respuestas
-        const empresasConRespuestas = await Respuesta.distinct('empresaId');
-        console.log('Empresas con respuestas:', empresasConRespuestas); // Depuración
-
-        // Filtrar IDs válidos y convertirlos a ObjectId
-        const validIds = empresasConRespuestas
-            .filter(id => mongoose.Types.ObjectId.isValid(id))
-            .map(id => new mongoose.Types.ObjectId(id)); // Usar 'new' para instanciar ObjectId
-        console.log('IDs válidos:', validIds); // Depuración
-
-        // Validar que haya IDs válidos
-        if (!validIds || validIds.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'No se encontraron empresas con formulario completo.'
-            });
-        }
-
-        // Filtrar solo empresas con formulario completo
+        // Buscar empresas con formulario completo (51+ empleados) que tengan al menos 1 formulario resuelto
         const empresas = await Empresa.find({
-            _id: { $in: validIds },
-            tipoFormulario: 'completo'
-        }).select('nombreEmpresa cantidadEmpleados _id muestraRepresentativa contador');
+            tipoFormulario: 'completo',
+            contador: { $gte: 1 } // Al menos 1 formulario resuelto
+        })
+        .select('nombreEmpresa cantidadEmpleados _id muestraRepresentativa contador tipoFormulario')
+        .sort({ nombreEmpresa: 1, cantidadEmpleados: 1 })
+        .lean();
 
-        console.log('Empresas encontradas:', empresas); // Depuración
+        console.log('Empresas con formulario completo y al menos 1 formulario resuelto:', empresas); // Depuración
 
         res.status(200).json({
             success: true,
@@ -337,6 +344,48 @@ exports.getEmpresasConFormularioCompleto = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al obtener empresas',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+exports.someFunction = async (req, res) => {
+    try {
+        const empresaId = req.params.empresaId;
+
+        // Buscar la empresa por su ID
+        const empresa = await Empresa.findById(empresaId);
+
+        if (!empresa) {
+            return res.status(404).json({
+                success: false,
+                message: 'Empresa no encontrada'
+            });
+        }
+
+        // Guardar la cantidad de empleados y la muestra representativa en variables
+        const cantidadEmpleados = empresa.cantidadEmpleados;
+        const muestraRepresentativa = empresa.muestraRepresentativa;
+
+        // Usar las variables en tu lógica
+        if (cantidadEmpleados > 50) {
+            console.log(`La empresa tiene más de 50 empleados. Muestra representativa: ${muestraRepresentativa}`);
+        } else {
+            console.log(`La empresa tiene ${cantidadEmpleados} empleados.`);
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                cantidadEmpleados,
+                muestraRepresentativa
+            }
+        });
+    } catch (error) {
+        console.error('Error en someFunction:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }

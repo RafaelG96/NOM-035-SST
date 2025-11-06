@@ -35,14 +35,6 @@ const RespuestaSchema = new mongoose.Schema({
       message: 'Debe haber al menos un dominio calculado'
     }
   },
-  puntajesPorDimension: {
-    type: Object,
-    required: true,
-    validate: {
-      validator: (dimensiones) => Object.keys(dimensiones).length > 0,
-      message: 'Debe haber al menos una dimensión calculada'
-    }
-  },
   servicioClientes: {
     type: Boolean,
     default: false,

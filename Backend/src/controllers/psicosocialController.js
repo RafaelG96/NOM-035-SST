@@ -59,11 +59,6 @@ const guardarRespuesta = async (req, res) => {
         puntaje: datos.puntaje,
         nivel: datos.nivel
       })),
-      dimensiones: Object.entries(resultado.dimensiones).map(([nombre, datos]) => ({
-        nombre,
-        puntaje: datos.puntaje,
-        nivel: datos.nivel
-      })),
       recomendaciones: resultado.recomendaciones
     });
 
@@ -92,13 +87,44 @@ const obtenerResultados = async (req, res) => {
   try {
     const { empresaId } = req.params;
 
-    // Busca las respuestas en la base de datos
-    const resultados = await Respuesta.find({ empresaId });
+    if (!mongoose.Types.ObjectId.isValid(empresaId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de empresa no válido'
+      });
+    }
 
-    // Asegúrate de devolver un arreglo, incluso si no hay resultados
+    // Obtener la empresa para verificar su existencia y cantidad de empleados
+    const empresa = await mongoose.model('Empresa').findById(empresaId).select('nombreEmpresa cantidadEmpleados').lean();
+
+    if (!empresa) {
+      return res.status(404).json({
+        success: false,
+        message: 'Empresa no encontrada'
+      });
+    }
+
+    // Buscar las respuestas en la base de datos
+    const resultados = await Respuesta.find({ empresaId }).lean();
+
+    // Calcular progreso
+    const totalEmpleados = empresa.cantidadEmpleados;
+    const encuestasCompletadas = resultados.length;
+    const progreso = `${encuestasCompletadas}/${totalEmpleados}`;
+
     res.status(200).json({
       success: true,
-      data: resultados || [] // Devuelve un arreglo vacío si no hay resultados
+      data: {
+        empresa, // Incluye la información de la empresa
+        resultados, // Arreglo de respuestas
+        resumen: {
+          totalEncuestas: encuestasCompletadas,
+          progreso,
+          ultimaActualizacion: resultados.length > 0
+            ? new Date(Math.max(...resultados.map(r => new Date(r.updatedAt || r.createdAt)))).toISOString()
+            : null
+        }
+      }
     });
   } catch (error) {
     console.error('Error al obtener resultados:', error);

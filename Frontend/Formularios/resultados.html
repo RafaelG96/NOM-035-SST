@@ -16,7 +16,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="../Index.html">
+            <a class="navbar-brand" href="../index.html">
                 <i class="fas fa-poll me-2"></i>Cuestionario SST
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -125,6 +125,16 @@
                                 </div>
                             </div>
 
+                            <!-- Botones Descargar PDF y Excel -->
+                            <div class="text-end mb-4">
+                                <button id="descargarPDF" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#previsualizacionModal">
+                                    <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+                                </button>
+                                <button id="descargarExcel" class="btn btn-success">
+                                    <i class="fas fa-file-excel me-2"></i>Descargar Excel
+                                </button>
+                            </div>
+
                             <!-- Sección de necesidad de acción -->
                             <div id="accionRiesgoContainer" class="mb-4 d-none">
                                 <div class="card">
@@ -144,7 +154,7 @@
                         </div>
 
                         <div class="mt-4 text-center">
-                            <a href="../Index.html" class="btn btn-outline-primary">
+                            <a href="../index.html" class="btn btn-outline-primary">
                                 <i class="fas fa-arrow-left me-2"></i>Volver al inicio
                             </a>
                         </div>
@@ -172,6 +182,29 @@
         </div>
     </div>
 
+    <!-- Modal para previsualización de datos -->
+    <div class="modal fade" id="previsualizacionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Previsualización de Resultados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="previsualizacionContenido">
+                        <!-- Aquí se generará dinámicamente la previsualización -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button id="confirmarDescargaPDF" type="button" class="btn btn-danger" disabled>
+                        <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-light py-4 mt-5">
         <div class="container text-center text-muted">
@@ -181,6 +214,13 @@
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+   <!-- Chart.js para gráficos -->
+   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+   <!-- jsPDF -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+   <!-- SheetJS (xlsx) para exportar a Excel -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Script de resultados -->
     <script src="../Js/resultados.js"></script>
 </body>

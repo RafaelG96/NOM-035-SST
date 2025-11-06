@@ -33,10 +33,6 @@ const ResultadoSchema = new mongoose.Schema({
     type: Array, 
     required: true
   },
-  dimensiones: {
-    type: Array, 
-    required: true
-  },
   recomendaciones: String
 }, {
   timestamps: true,

@@ -87,14 +87,13 @@ const guardarRespuesta = async (req, res) => {
     }
 
     // Calcular puntajes
-    const { puntajeTotal, puntajesPorCategoria, puntajesPorDominio, puntajesPorDimension } = 
+    const { puntajeTotal, puntajesPorCategoria, puntajesPorDominio } = 
       calcularPuntaje(preguntasProcesadas, esJefeBool, servicioClientesBool);
     
     // Validación de los cálculos
     if (typeof puntajeTotal !== 'number' || isNaN(puntajeTotal) ||
         !puntajesPorCategoria || typeof puntajesPorCategoria !== 'object' ||
-        !puntajesPorDominio || typeof puntajesPorDominio !== 'object' ||
-        !puntajesPorDimension || typeof puntajesPorDimension !== 'object') {
+        !puntajesPorDominio || typeof puntajesPorDominio !== 'object') {
       throw new Error('Los resultados del cálculo de puntajes no son válidos');
     }
 
@@ -108,7 +107,6 @@ const guardarRespuesta = async (req, res) => {
       puntajeTotal,
       puntajesPorCategoria,
       puntajesPorDominio,
-      puntajesPorDimension,
       servicioClientes: servicioClientesBool,
       esJefe: esJefeBool,
       nivelRiesgo: nivel,
@@ -126,7 +124,6 @@ const guardarRespuesta = async (req, res) => {
         recomendacion,
         categorias: puntajesPorCategoria,
         dominios: puntajesPorDominio,
-        dimensiones: puntajesPorDimension,
         esJefe: esJefeBool,
         servicioClientes: servicioClientesBool
       }
@@ -156,11 +153,10 @@ const guardarRespuesta = async (req, res) => {
 };
 
 // Función para obtener respuestas por empresa
-// Actualiza la función getRespuestasByEmpresa
 const getRespuestasByEmpresa = async (req, res) => {
   try {
     const empresaId = req.params.empresaId;
-    
+
     if (!mongoose.Types.ObjectId.isValid(empresaId)) {
       return res.status(400).json({
         success: false,
@@ -168,9 +164,9 @@ const getRespuestasByEmpresa = async (req, res) => {
       });
     }
 
-    // Obtener empresa primero para asegurar que existe
+    // Obtener la empresa para verificar su existencia y obtener la muestra representativa
     const empresa = await Empresa.findById(empresaId)
-      .select('nombreEmpresa cantidadEmpleados')
+      .select('nombreEmpresa cantidadEmpleados muestraRepresentativa')
       .lean();
 
     if (!empresa) {
@@ -180,6 +176,10 @@ const getRespuestasByEmpresa = async (req, res) => {
       });
     }
 
+    // Determinar el objetivo de encuestas (muestra representativa o cantidad total de empleados)
+    const objetivoEncuestas = empresa.muestraRepresentativa || empresa.cantidadEmpleados;
+
+    // Obtener las respuestas asociadas a la empresa
     const respuestas = await Respuesta.find({ empresaId })
       .sort({ createdAt: -1 })
       .lean();
@@ -187,17 +187,22 @@ const getRespuestasByEmpresa = async (req, res) => {
     // Calcular datos resumidos
     const sumaPuntajes = respuestas.reduce((sum, res) => sum + (res.puntajeTotal || 0), 0);
     const puntajePromedio = respuestas.length > 0 ? Math.round(sumaPuntajes / respuestas.length) : 0;
-    const ultimaActualizacion = respuestas.length > 0 ? 
-      new Date(Math.max(...respuestas.map(r => new Date(r.updatedAt || r.createdAt)))) : 
-      null;
+    const ultimaActualizacion = respuestas.length > 0
+      ? new Date(Math.max(...respuestas.map(r => new Date(r.updatedAt || r.createdAt))))
+      : null;
 
+    // Calcular progreso
+    const progreso = `${respuestas.length}/${objetivoEncuestas}`;
+
+    // Enviar la respuesta al cliente
     res.json({
       success: true,
       data: {
-        empresa, // Incluir toda la información de la empresa
-        respuestas,
+        empresa, // Información de la empresa
+        respuestas, // Respuestas obtenidas
         resumen: {
           totalEncuestas: respuestas.length,
+          progreso, // Progreso basado en la muestra representativa
           puntajePromedio,
           nivelRiesgo: determinarNivelRiesgo(puntajePromedio),
           ultimaActualizacion: ultimaActualizacion?.toISOString() || null
@@ -252,8 +257,7 @@ const getRespuestaById = async (req, res) => {
         empresa: respuesta.empresaId,
         detalles: {
           categorias: respuesta.puntajesPorCategoria,
-          dominios: respuesta.puntajesPorDominio,
-          dimensiones: respuesta.puntajesPorDimension
+          dominios: respuesta.puntajesPorDominio
         },
         contexto: {
           esJefe: respuesta.esJefe,
