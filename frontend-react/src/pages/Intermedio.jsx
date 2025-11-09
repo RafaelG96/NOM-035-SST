@@ -1,18 +1,41 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { empresaAPI } from '../services/api'
 
 function Intermedio() {
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
+  const [errorInfo, setErrorInfo] = useState(null)
+  const [lockoutSeconds, setLockoutSeconds] = useState(0)
   const [formData, setFormData] = useState({
     empresaNombre: '',
     claveAcceso: ''
   })
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    if (lockoutSeconds <= 0) {
+      return
+    }
+
+    const intervalId = setInterval(() => {
+      setLockoutSeconds((prev) => (prev <= 1 ? 0 : prev - 1))
+    }, 1000)
+
+    return () => clearInterval(intervalId)
+  }, [lockoutSeconds])
+
+  const isLocked = useMemo(() => lockoutSeconds > 0, [lockoutSeconds])
+
+  const formatLockoutTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+  }
+
   const handleEmpleadoSubmit = async (e) => {
     e.preventDefault()
+    if (isLocked) return
     setLoading(true)
 
     try {
@@ -26,6 +49,8 @@ function Intermedio() {
         localStorage.setItem('empresaId', response.data.empresaId)
         localStorage.setItem('empresaNombre', formData.empresaNombre)
         localStorage.setItem('tipoFormulario', response.data.tipoFormulario || 'basico')
+        setErrorInfo(null)
+        setLockoutSeconds(0)
         
         // Redirigir según el tipo de formulario
         const tipoFormulario = response.data.tipoFormulario || 'basico'
@@ -36,7 +61,8 @@ function Intermedio() {
         }
       }
     } catch (error) {
-      alert(error.message || 'Error al verificar las credenciales')
+      setErrorInfo(error.response?.data?.message || error.message || 'Las credenciales proporcionadas no son correctas.')
+      setLockoutSeconds(30)
     } finally {
       setLoading(false)
     }
@@ -116,12 +142,36 @@ function Intermedio() {
                   <button 
                     type="button" 
                     className="btn-close" 
-                    onClick={() => setShowModal(false)}
+                    onClick={() => {
+                      setShowModal(false)
+                      setErrorInfo(null)
+                      setLockoutSeconds(0)
+                    }}
                     aria-label="Cerrar"
                   ></button>
                 </div>
                 <form onSubmit={handleEmpleadoSubmit}>
                   <div className="modal-body">
+                    {errorInfo && (
+                      <div className={`alert ${isLocked ? 'alert-danger' : 'alert-info'} d-flex align-items-start`} role="alert">
+                        <i className="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                        <div>
+                          <strong>Error al iniciar sesión.</strong>
+                          <div className="small">
+                            {errorInfo}
+                          </div>
+                          {isLocked ? (
+                            <div className="mt-2">
+                              Espere <strong>{formatLockoutTime(lockoutSeconds)}</strong> para volver a intentarlo.
+                            </div>
+                          ) : (
+                            <div className="mt-2">
+                              Ya puede intentar iniciar sesión nuevamente.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <div className="mb-3">
                       <label htmlFor="empresaNombre" className="form-label">Nombre de la Empresa</label>
                       <input 
@@ -150,24 +200,35 @@ function Intermedio() {
                     <button 
                       type="button" 
                       className="btn btn-secondary" 
-                      onClick={() => setShowModal(false)}
+                      onClick={() => {
+                        setShowModal(false)
+                        setErrorInfo(null)
+                        setLockoutSeconds(0)
+                      }}
                     >
                       Cancelar
                     </button>
                     <button 
                       type="submit" 
                       className="btn btn-primary"
-                      disabled={loading}
+                      disabled={loading || isLocked}
                     >
                       {loading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2"></span>
                           Verificando...
                         </>
+                      ) : isLocked ? (
+                        `Espere ${formatLockoutTime(lockoutSeconds)}`
                       ) : (
                         'Ingresar'
                       )}
                     </button>
+                    {isLocked && (
+                      <div className="w-100 mt-2 text-muted small">
+                        Podrá intentar nuevamente en {formatLockoutTime(lockoutSeconds)}.
+                      </div>
+                    )}
                   </div>
                 </form>
               </div>
