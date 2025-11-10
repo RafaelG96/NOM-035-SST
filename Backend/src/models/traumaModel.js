@@ -24,6 +24,7 @@ const traumaCuestionarioSchema = new mongoose.Schema({
   respuestas: [traumaRespuestaSchema],
   requiereEvaluacion: { type: Boolean, required: true },
   razonesEvaluacion: [String],
+  recomendaciones: [String],
   identificadorAnonimo: { 
     type: String, 
     unique: true,

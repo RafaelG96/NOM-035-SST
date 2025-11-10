@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { traumaAPI } from '../services/api'
+import FeedbackModal from '../components/FeedbackModal'
 
 function ResultadosTraumaticos() {
   const [loading, setLoading] = useState(false)
@@ -8,6 +9,21 @@ function ResultadosTraumaticos() {
   const [empresas, setEmpresas] = useState([])
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState('')
   const [mostrarTodos, setMostrarTodos] = useState(false)
+  const [feedback, setFeedback] = useState({
+    show: false,
+    title: '',
+    message: '',
+    theme: 'danger',
+    autoClose: 3500,
+    afterClose: null
+  })
+  const handleFeedbackClose = () => {
+    setFeedback(prev => ({
+      ...prev,
+      show: false,
+      afterClose: null
+    }))
+  }
 
   useEffect(() => {
     loadEmpresas()
@@ -36,7 +52,14 @@ function ResultadosTraumaticos() {
       console.error('Error al cargar empresas:', error)
       // Si no hay empresas, mostrar mensaje pero no error fatal
       if (error.response?.status !== 404) {
-        alert('Error al cargar las empresas: ' + (error.message || 'Error desconocido'))
+        setFeedback({
+          show: true,
+          title: 'Error al cargar empresas',
+          message: error.message || 'Ocurrió un problema al obtener la lista de empresas.',
+          theme: 'danger',
+          autoClose: 4000,
+          afterClose: null
+        })
       }
     } finally {
       setLoadingEmpresas(false)
@@ -58,7 +81,14 @@ function ResultadosTraumaticos() {
       }
     } catch (error) {
       console.error('Error al cargar resultados:', error)
-      alert('Error al cargar los resultados: ' + (error.message || 'Error desconocido'))
+      setFeedback({
+        show: true,
+        title: 'Error al cargar resultados',
+        message: error.message || 'No se pudieron cargar los resultados para la empresa seleccionada.',
+        theme: 'danger',
+        autoClose: 4000,
+        afterClose: null
+      })
       setResultados([])
     } finally {
       setLoading(false)
@@ -79,7 +109,14 @@ function ResultadosTraumaticos() {
       }
     } catch (error) {
       console.error('Error al cargar todos los resultados:', error)
-      alert('Error al cargar los resultados: ' + (error.message || 'Error desconocido'))
+      setFeedback({
+        show: true,
+        title: 'Error al cargar resultados',
+        message: error.message || 'No se pudieron cargar los resultados registrados.',
+        theme: 'danger',
+        autoClose: 4000,
+        afterClose: null
+      })
       setResultados([])
     } finally {
       setLoading(false)
@@ -97,6 +134,14 @@ function ResultadosTraumaticos() {
 
   return (
     <div className="container py-5">
+      <FeedbackModal
+        show={feedback.show}
+        title={feedback.title}
+        message={feedback.message}
+        theme={feedback.theme}
+        autoClose={feedback.autoClose}
+        onClose={handleFeedbackClose}
+      />
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="mb-0">Resultados de Eventos Traumáticos</h1>
       </div>
@@ -245,6 +290,26 @@ function ResultadosTraumaticos() {
                             <i className="bi bi-check-circle me-2"></i>
                             No requiere evaluación
                           </span>
+                        </div>
+                      )}
+
+                      {resultado.recomendaciones && resultado.recomendaciones.length > 0 && (
+                        <div className="mt-4">
+                          <h6 className="text-info">
+                            <i className="bi bi-life-preserver me-2"></i>
+                            Recomendaciones y pasos sugeridos
+                          </h6>
+                          <ul className="list-group list-group-flush">
+                            {resultado.recomendaciones.map((recomendacion, recIndex) => (
+                              <li key={recIndex} className="list-group-item">
+                                {recomendacion}
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="alert alert-secondary mt-3 mb-0 small">
+                            <i className="bi bi-telephone-inbound-fill me-2"></i>
+                            Se recomienda informar al área de Seguridad y Salud en el Trabajo y brindar acceso a apoyo psicológico interno o externo según corresponda.
+                          </div>
                         </div>
                       )}
                     </div>

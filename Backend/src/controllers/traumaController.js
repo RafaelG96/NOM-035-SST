@@ -81,7 +81,8 @@ exports.guardarCuestionario = async (req, res) => {
       respuestas,
       requiereEvaluacion,
       razonesEvaluacion,
-      identificadorAnonimo
+      identificadorAnonimo,
+      recomendaciones: generarRecomendaciones(respuestas, requiereEvaluacion)
     });
 
     await cuestionario.save();
@@ -99,7 +100,8 @@ exports.guardarCuestionario = async (req, res) => {
       requiereEvaluacion: cuestionario.requiereEvaluacion,
       razonesEvaluacion: cuestionario.razonesEvaluacion,
       empresa: cuestionario.empresa,
-      cuestionarioId: cuestionario._id
+      cuestionarioId: cuestionario._id,
+      recomendaciones: cuestionario.recomendaciones
     });
 
   } catch (error) {
@@ -143,6 +145,57 @@ exports.obtenerResultados = async (req, res) => {
     });
   }
 };
+
+function generarRecomendaciones(respuestas, requiereEvaluacion) {
+  const recomendaciones = [];
+
+  const preguntasSi = new Set(
+    respuestas.filter(r => r.respuesta === 'si').map(r => r.pregunta)
+  );
+
+  const seccionII = preguntasSi.has('q7') || preguntasSi.has('q8');
+  const seccionIII = ['q9', 'q10', 'q11', 'q12', 'q13', 'q14', 'q15'].some(p => preguntasSi.has(p));
+  const seccionIV = ['q16', 'q17', 'q18', 'q19', 'q20'].some(p => preguntasSi.has(p));
+
+  if (preguntasSi.has('q1')) {
+    recomendaciones.push('Buscar apoyo médico y psicológico debido a la gravedad del accidente experimentado.');
+  }
+  if (preguntasSi.has('q2')) {
+    recomendaciones.push('Notificar al área de seguridad y recibir acompañamiento especializado por el asalto sufrido.');
+  }
+  if (preguntasSi.has('q3')) {
+    recomendaciones.push('El colaborador debe recibir atención psicológica inmediata por actos violentos con lesiones.');
+  }
+  if (preguntasSi.has('q4')) {
+    recomendaciones.push('Ofrecer un plan de apoyo integral y seguimiento profesional tras el secuestro vivido.');
+  }
+  if (preguntasSi.has('q5')) {
+    recomendaciones.push('Fortalecer la seguridad y brindar contención psicológica ante amenazas recibidas.');
+  }
+  if (preguntasSi.has('q6')) {
+    recomendaciones.push('Investigar el evento y activar protocolos de acompañamiento por riesgo a la vida o salud.');
+  }
+
+  if (seccionII) {
+    recomendaciones.push('Derivar a evaluación clínica por recuerdos o sueños recurrentes del evento traumático.');
+  }
+
+  if (seccionIII) {
+    recomendaciones.push('Recomendar terapia para trabajar esfuerzos por evitar situaciones que rememoran el evento.');
+  }
+
+  if (seccionIV) {
+    recomendaciones.push('Sugerir intervención psicológica para atender alteraciones de sueño, irritabilidad o alerta constante.');
+  }
+
+  if (requiereEvaluacion) {
+    recomendaciones.push('El colaborador cumple criterios para evaluación especializada; coordinar canalización con el área de salud ocupacional.');
+  } else if (recomendaciones.length === 0) {
+    recomendaciones.push('No se detectaron indicadores críticos. Mantener monitoreo y ofrecer información de apoyo.');
+  }
+
+  return recomendaciones;
+}
 
 exports.obtenerEmpresas = async (req, res) => {
   try {

@@ -60,6 +60,10 @@ La norma busca establecer los elementos para:
   - Modales de feedback estilizados para logins y envíos (éxito, advertencia, error) con autocierre y redirecciones
   - Gráficos con detalles desplegables que describen cada categoría y dominio, mostrando puntajes y niveles
   - Validaciones contextuales que alertan de preguntas obligatorias faltantes sin interrumpir el flujo
+- **Apoyo ante Eventos Traumáticos**:
+  - Recopila opcionalmente el nombre de la empresa y guía para quienes completan el formulario
+  - Genera recomendaciones automáticas para RRHH/SSO cuando se detectan respuestas de riesgo
+  - Resalta la necesidad de canalizar a la persona con profesionales internos o externos
 - **Cuestionarios Digitales**:
   - **Acontecimientos Traumáticos Severos**: Evaluación de eventos traumáticos
   - **Factores de Riesgo Psicosocial - Entorno**: Para empresas con 51+ empleados (72 preguntas)
