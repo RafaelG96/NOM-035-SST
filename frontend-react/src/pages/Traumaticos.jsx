@@ -2,12 +2,30 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { traumaAPI } from '../services/api'
 import TraumaticQuestionForm from '../components/TraumaticQuestionForm'
+import FeedbackModal from '../components/FeedbackModal'
 
 function Traumaticos() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [empresaNombre, setEmpresaNombre] = useState('')
   const [showCompanyForm, setShowCompanyForm] = useState(true)
+  const [feedback, setFeedback] = useState({
+    show: false,
+    title: '',
+    message: '',
+    theme: 'primary',
+    autoClose: 4000,
+    afterClose: null
+  })
+  const handleFeedbackClose = () => {
+    setFeedback(prev => {
+      const callback = prev.afterClose
+      if (callback) {
+        setTimeout(callback, 0)
+      }
+      return { ...prev, show: false, afterClose: null }
+    })
+  }
 
   // Preguntas del formulario de eventos traumáticos según NOM-035
   // Sección I: Exposición a eventos traumáticos (preguntas 1-6)
@@ -45,9 +63,8 @@ function Traumaticos() {
   ]
 
   useEffect(() => {
-    // Intentar obtener el nombre de la empresa del localStorage (opcional)
     const storedEmpresaNombre = localStorage.getItem('empresaNombre')
-    if (storedEmpresaNombre) {
+    if (storedEmpresaNombre && storedEmpresaNombre.trim().length > 0) {
       setEmpresaNombre(storedEmpresaNombre)
       setShowCompanyForm(false)
     }
@@ -57,11 +74,26 @@ function Traumaticos() {
     e.preventDefault()
     const nombre = e.target.companyName.value.trim()
     if (nombre && nombre.length >= 2) {
-      console.log('✅ Nombre de empresa establecido:', nombre)
       setEmpresaNombre(nombre)
+      localStorage.setItem('empresaNombre', nombre)
+      setFeedback({
+        show: true,
+        title: 'Empresa registrada',
+        message: `Se utilizará "${nombre}" para identificar tus respuestas.`,
+        theme: 'info',
+        autoClose: 2500,
+        afterClose: null
+      })
       setShowCompanyForm(false)
     } else {
-      alert('Por favor ingrese un nombre de empresa válido (mínimo 2 caracteres)')
+      setFeedback({
+        show: true,
+        title: 'Nombre inválido',
+        message: 'Ingresa al menos 2 caracteres para identificar tu empresa o continúa sin nombre.',
+        theme: 'warning',
+        autoClose: 3500,
+        afterClose: null
+      })
     }
   }
 
@@ -94,28 +126,33 @@ function Traumaticos() {
       // Solo incluir empresa si se proporcionó
       if (empresaNombreTrimmed && empresaNombreTrimmed.length > 0) {
         data.empresa = empresaNombreTrimmed
+        localStorage.setItem('empresaNombre', empresaNombreTrimmed)
       }
-
-      console.log('📤 Enviando datos al backend:', {
-        empresa: data.empresa || '(no proporcionado)',
-        cantidadRespuestas: data.respuestas.length,
-        respuestas: data.respuestas
-      })
 
       const response = await traumaAPI.create(data)
       
-      console.log('✅ Respuesta del backend:', response.data)
-      
       if (response.data && response.data.success) {
-        alert('Formulario enviado exitosamente')
-        navigate('/resultados-traumaticos')
+        setFeedback({
+          show: true,
+          title: '¡Gracias!',
+          message: 'Tus respuestas se enviaron correctamente. Serás redirigido a los resultados.',
+          theme: 'success',
+          autoClose: 2500,
+          afterClose: () => navigate('/resultados-traumaticos')
+        })
       } else {
         throw new Error('No se recibió confirmación del servidor')
       }
     } catch (error) {
-      console.error('❌ Error al enviar formulario:', error)
       const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || 'Error al enviar el formulario'
-      alert(`Error: ${errorMessage}`)
+      setFeedback({
+        show: true,
+        title: 'Error al enviar',
+        message: errorMessage,
+        theme: 'danger',
+        autoClose: 4000,
+        afterClose: null
+      })
     } finally {
       setLoading(false)
     }
@@ -123,13 +160,29 @@ function Traumaticos() {
 
   return (
     <div className="container py-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <FeedbackModal
+        show={feedback.show}
+        title={feedback.title}
+        message={feedback.message}
+        theme={feedback.theme}
+        autoClose={feedback.autoClose}
+        onClose={handleFeedbackClose}
+      />
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <h1 className="mb-0">Formulario de Eventos Traumáticos</h1>
-        {empresaNombre && (
-          <div className="badge bg-primary fs-6">
-            Empresa: {empresaNombre}
-          </div>
-        )}
+        <div className="d-flex align-items-center gap-2">
+          <span className={`badge ${empresaNombre ? 'bg-primary' : 'bg-secondary'} fs-6`}>
+            Empresa: {empresaNombre || 'Sin especificar'}
+          </span>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-primary"
+            onClick={() => setShowCompanyForm(true)}
+          >
+            <i className="bi bi-pencil-square me-1"></i>
+            {empresaNombre ? 'Cambiar' : 'Agregar'} nombre
+          </button>
+        </div>
       </div>
 
       <div className="card shadow-sm">
@@ -165,6 +218,7 @@ function Traumaticos() {
                       className="form-control"
                       id="companyName"
                       name="companyName"
+                      defaultValue={empresaNombre}
                       placeholder="Ingrese el nombre de su empresa (opcional)"
                     />
                     <small className="form-text text-muted">
@@ -183,6 +237,7 @@ function Traumaticos() {
                       className="btn btn-outline-secondary"
                       onClick={() => {
                         setEmpresaNombre('')
+                        localStorage.removeItem('empresaNombre')
                         setShowCompanyForm(false)
                       }}
                     >
