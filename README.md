@@ -79,7 +79,6 @@ La norma busca establecer los elementos para:
 El proyecto incluye dos interfaces frontend:
 
 1. **Frontend React** (`frontend-react/`): Aplicación moderna desarrollada con React, Vite y Bootstrap 5
-2. **Frontend Tradicional** (`Frontend/`): Aplicación desarrollada con HTML, CSS y JavaScript vanilla
 
 ---
 
@@ -109,15 +108,6 @@ El proyecto incluye dos interfaces frontend:
 - **react-chartjs-2** - Wrapper de React para Chart.js
 - **jsPDF** - Generación de documentos PDF
 - **xlsx** - Exportación de datos a formato Excel
-
-### Frontend Tradicional
-
-- **HTML5** - Estructura de páginas
-- **CSS3** - Estilos
-- **JavaScript (ES6+)** - Lógica del cliente
-- **Bootstrap** - Framework CSS
-
----
 
 ## 📁 Estructura del Proyecto
 
@@ -163,6 +153,7 @@ NOM-035-5.3s/
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── Footer.jsx
 │   │   │   ├── QuestionForm.jsx
+│   │   │   ├── FeedbackModal.jsx
 │   │   │   ├── TraumaticQuestionForm.jsx
 │   │   │   ├── DonutChart.jsx
 │   │   │   ├── PuntajesGrid.jsx
@@ -187,25 +178,6 @@ NOM-035-5.3s/
 │   ├── public/
 │   ├── package.json
 │   └── vite.config.js
-│
-├── Frontend/                  # Frontend tradicional (HTML/CSS/JS)
-│   ├── Formularios/          # Formularios HTML
-│   │   ├── empresa.html
-│   │   ├── traumaticos.html
-│   │   ├── psicosocial-entorno.html
-│   │   ├── psicosocial-trabajo.html
-│   │   ├── resultados.html
-│   │   ├── resultadosTrabajo.html
-│   │   └── resultadosTraumaticos.html
-│   ├── Js/                   # Scripts JavaScript
-│   │   ├── empresa.js
-│   │   ├── traumaticos.js
-│   │   ├── psicosocial-entorno.js
-│   │   ├── psicosocial-trabajo.js
-│   │   └── resultados.js
-│   ├── css/                  # Estilos CSS
-│   ├── index.html            # Página principal
-│   └── pages/
 │
 └── README.md                 # Este archivo
 ```
@@ -292,21 +264,11 @@ npm run dev
 
 La aplicación estará disponible en `http://localhost:5173` (o el puerto que Vite asigne)
 
-#### 7. Usar el Frontend Tradicional (Alternativa)
-
-Si prefieres usar el frontend tradicional, puedes usar Live Server en Visual Studio Code:
-
-1. Abre el archivo `Frontend/index.html`
-2. Haz clic derecho y selecciona **"Open with Live Server"**
-
----
-
 ## 💻 Uso
 
 ### Acceso a la Aplicación
 
 1. **Frontend React**: Visita `http://localhost:5173`
-2. **Frontend Tradicional**: Visita `http://localhost:5500` (o el puerto de Live Server)
 
 ### Flujo de Uso
 
