@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { empresaAPI } from '../services/api'
+import jsPDF from 'jspdf'
 
 function RegistroEmpresa() {
   const navigate = useNavigate()
@@ -13,6 +14,180 @@ function RegistroEmpresa() {
   const [loading, setLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [modalData, setModalData] = useState(null)
+
+  // Función helper para agregar texto con soporte UTF-8
+  const addText = (doc, text, x, y) => {
+    try {
+      const textStr = String(text || '').trim()
+      if (!textStr) return
+      doc.text(textStr, x, y)
+    } catch (error) {
+      console.error('Error al agregar texto al PDF:', error)
+      try {
+        doc.text(String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, ''), x, y)
+      } catch (e) {
+        console.error('Error en fallback:', e)
+      }
+    }
+  }
+
+  // Función para descargar PDF con las claves
+  const handleDescargarClavesPDF = () => {
+    if (!modalData) return
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      // Función helper para dibujar rectángulo
+      const drawRect = (x, y, width, height, fill = false, color = null) => {
+        if (fill) {
+          if (color) {
+            doc.setFillColor(color[0], color[1], color[2])
+          } else {
+            doc.setFillColor(240, 240, 240)
+          }
+          doc.rect(x, y, width, height, 'F')
+        }
+        doc.setDrawColor(200, 200, 200)
+        doc.setLineWidth(0.3)
+        doc.rect(x, y, width, height)
+      }
+
+      // Encabezado azul
+      doc.setFillColor(41, 128, 185)
+      doc.rect(0, 0, 210, 35, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(20)
+      doc.setFont(undefined, 'bold')
+      const titleText = 'CREDENCIALES DE ACCESO - NOM-035'
+      const titleWidth = doc.getTextWidth(titleText)
+      addText(doc, titleText, (210 - titleWidth) / 2, 25)
+      
+      doc.setTextColor(0, 0, 0)
+      doc.setFont(undefined, 'normal')
+      let y = 50
+
+      // Información de la Empresa
+      drawRect(10, y, 190, 40, true)
+      doc.setFontSize(14)
+      doc.setFont(undefined, 'bold')
+      addText(doc, 'INFORMACIÓN DE LA EMPRESA', 15, y + 8)
+      
+      doc.setFontSize(11)
+      doc.setFont(undefined, 'normal')
+      y += 12
+      addText(doc, `Nombre: ${modalData.nombreEmpresa}`, 15, y)
+      y += 8
+      addText(doc, `Total de Empleados: ${modalData.cantidadEmpleados}`, 15, y)
+      y += 8
+      addText(doc, `Tipo de Formulario: ${modalData.formularioInfo.descripcion}`, 15, y)
+      if (modalData.formularioInfo.requiereMuestra) {
+        y += 8
+        addText(doc, `Muestra Representativa: ${modalData.muestraRepresentativa} empleados`, 15, y)
+      }
+      
+      y += 20
+
+      // Clave de Acceso para Empleados
+      drawRect(10, y, 190, 35, true, [220, 237, 200])
+      doc.setFontSize(13)
+      doc.setFont(undefined, 'bold')
+      addText(doc, 'CLAVE DE ACCESO PARA EMPLEADOS', 15, y + 8)
+      
+      doc.setFontSize(10)
+      doc.setFont(undefined, 'normal')
+      y += 12
+      addText(doc, 'Esta clave permite a los empleados acceder y completar los cuestionarios:', 15, y)
+      y += 10
+      
+      // Caja destacada para la clave
+      drawRect(15, y, 180, 12, true, [255, 255, 255])
+      doc.setDrawColor(46, 125, 50)
+      doc.setLineWidth(1)
+      doc.rect(15, y, 180, 12)
+      doc.setFontSize(18)
+      doc.setFont(undefined, 'bold')
+      doc.setTextColor(46, 125, 50)
+      const claveWidth = doc.getTextWidth(modalData.clave)
+      addText(doc, modalData.clave, (210 - claveWidth) / 2, y + 8.5)
+      
+      doc.setTextColor(0, 0, 0)
+      doc.setFont(undefined, 'normal')
+      y += 20
+
+      // Código de Acceso a Resultados
+      drawRect(10, y, 190, 40, true, [255, 243, 224])
+      doc.setFontSize(13)
+      doc.setFont(undefined, 'bold')
+      addText(doc, 'CÓDIGO DE ACCESO A RESULTADOS', 15, y + 8)
+      
+      doc.setFontSize(10)
+      doc.setFont(undefined, 'normal')
+      y += 12
+      addText(doc, 'Este código es necesario para acceder a los resultados y reportes:', 15, y)
+      y += 10
+      
+      // Caja destacada para el código
+      drawRect(15, y, 180, 12, true, [255, 255, 255])
+      doc.setDrawColor(230, 126, 34)
+      doc.setLineWidth(1)
+      doc.rect(15, y, 180, 12)
+      doc.setFontSize(18)
+      doc.setFont(undefined, 'bold')
+      doc.setTextColor(230, 126, 34)
+      const codigoWidth = doc.getTextWidth(modalData.codigoAccesoResultados)
+      addText(doc, modalData.codigoAccesoResultados, (210 - codigoWidth) / 2, y + 8.5)
+      
+      doc.setTextColor(0, 0, 0)
+      doc.setFont(undefined, 'normal')
+      y += 20
+
+      // Advertencia importante
+      drawRect(10, y, 190, 30, true, [255, 235, 238])
+      doc.setDrawColor(211, 47, 47)
+      doc.setLineWidth(0.5)
+      doc.rect(10, y, 190, 30)
+      doc.setFontSize(11)
+      doc.setFont(undefined, 'bold')
+      doc.setTextColor(211, 47, 47)
+      addText(doc, '⚠️ IMPORTANTE', 15, y + 8)
+      
+      doc.setFontSize(9)
+      doc.setFont(undefined, 'normal')
+      doc.setTextColor(0, 0, 0)
+      y += 10
+      addText(doc, '• Guarde este documento en un lugar seguro', 15, y)
+      y += 6
+      addText(doc, '• No comparta el código de acceso a resultados con personal no autorizado', 15, y)
+      y += 6
+      addText(doc, '• Estos datos no se podrán modificar después de guardar', 15, y)
+
+      // Pie de página
+      y = 280
+      doc.setFontSize(8)
+      doc.setTextColor(128, 128, 128)
+      const fecha = new Date().toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      addText(doc, `Documento generado el ${fecha}`, 15, y)
+      addText(doc, 'Sistema NOM-035 - Evaluación Psicosocial', 110, y)
+
+      // Guardar PDF
+      const nombreArchivo = `Credenciales_${modalData.nombreEmpresa?.replace(/[^a-zA-Z0-9]/g, '_') || 'Empresa'}_${new Date().toISOString().split('T')[0]}.pdf`
+      doc.save(nombreArchivo)
+    } catch (error) {
+      console.error('Error al generar PDF:', error)
+      alert('Error al generar el PDF. Por favor, intente nuevamente.')
+    }
+  }
 
   const calcularMuestraRepresentativa = (N) => {
     const constante1 = 0.9604
@@ -342,6 +517,14 @@ function RegistroEmpresa() {
                   </div>
                 </div>
                 <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-danger"
+                    onClick={handleDescargarClavesPDF}
+                    title="Descargar credenciales en PDF"
+                  >
+                    <i className="bi bi-file-pdf me-2"></i>Descargar PDF
+                  </button>
                   <button 
                     type="button" 
                     className="btn btn-outline-secondary"
