@@ -174,14 +174,17 @@ function Traumaticos() {
           title: '¡Gracias!',
           message: mensaje,
           theme: 'success',
-          autoClose: 0,
+          autoClose: 3000,
           afterClose: () => {
             unlockForm()
+            // Reiniciar el formulario y el nombre de empresa
             setEmpresaNombre('')
             setCompanyInput('')
             localStorage.removeItem('empresaNombre')
+            // Mostrar el modal nuevamente para ingresar un nuevo nombre
             setShowCompanyModal(true)
-            navigate('/resultados-traumaticos')
+            // No navegar automáticamente, permitir llenar otro cuestionario
+            // navigate('/resultados-traumaticos')
           }
         })
       } else {
