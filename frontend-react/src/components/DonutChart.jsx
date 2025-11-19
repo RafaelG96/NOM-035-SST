@@ -6,11 +6,13 @@ import {
   Legend,
   DoughnutController
 } from 'chart.js'
+import { useTheme } from '../context/ThemeContext.jsx'
 
 // Registrar elementos necesarios para gráficos doughnut
 ChartJS.register(DoughnutController, ArcElement, Tooltip, Legend)
 
 function DonutChart({ valor, maximo, nombre, nivel, tipo }) {
+  const { theme } = useTheme()
   const canvasRef = useRef(null)
   const chartRef = useRef(null)
   const canvasIdRef = useRef(`canvas-${Math.random().toString(36).substr(2, 9)}`)
@@ -95,14 +97,25 @@ function DonutChart({ valor, maximo, nombre, nivel, tipo }) {
     // Crear datos para el gráfico
     const data = [pctNulo, pctBajo, pctMedio, pctAlto, pctMuyAlto]
 
-    // Color del texto según nivel
+    // Color del texto según nivel y tema
     let colorTexto = '#6c757d'
+    const isDarkMode = theme === 'dark'
+    
     if (nivel === 'Muy alto' || nivel === 'Alto') {
       colorTexto = nivel === 'Muy alto' ? '#dc3545' : '#ff8c00'
     } else if (nivel === 'Medio') {
       colorTexto = '#ffc107'
     } else if (nivel === 'Bajo' || nivel === 'Nulo' || nivel === 'Nulo o despreciable') {
       colorTexto = '#198754'
+    }
+    
+    // Ajustar color del texto para mejor contraste en modo oscuro
+    if (isDarkMode) {
+      // En modo oscuro, usar colores más brillantes para mejor visibilidad
+      if (colorTexto === '#6c757d') {
+        colorTexto = '#e0e0e0' // Gris claro para modo oscuro
+      }
+      // Los otros colores (rojo, naranja, amarillo, verde) ya son suficientemente brillantes
     }
 
     // Verificar que el canvas aún existe antes de crear el chart
@@ -145,10 +158,19 @@ function DonutChart({ valor, maximo, nombre, nivel, tipo }) {
             const centerY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2
             
             ctx.save()
-            ctx.font = 'bold 24px Arial'
+            // Aumentar tamaño de fuente y mejorar contraste
+            const fontSize = isDarkMode ? '26px' : '24px'
+            ctx.font = `bold ${fontSize} Arial`
             ctx.fillStyle = colorTexto
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
+            // Agregar sombra sutil en modo oscuro para mejor legibilidad
+            if (isDarkMode) {
+              ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+              ctx.shadowBlur = 2
+              ctx.shadowOffsetX = 1
+              ctx.shadowOffsetY = 1
+            }
             ctx.fillText(`${porcentaje}%`, centerX, centerY)
             ctx.restore()
           }
@@ -169,7 +191,7 @@ function DonutChart({ valor, maximo, nombre, nivel, tipo }) {
         chartRef.current = null
       }
     }
-  }, [valor, maximo, nombre, nivel, tipo])
+  }, [valor, maximo, nombre, nivel, tipo, theme])
 
   const getBadgeClass = (nivel) => {
     if (!nivel) return 'bg-secondary'
