@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useFormLock } from '../context/FormLockContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 
 function Navbar() {
   const [showModal, setShowModal] = useState(false)
   const { isLocked, lockMessage } = useFormLock()
+  const { theme, toggleTheme } = useTheme()
 
   const handleProtectedClick = (event, callback) => {
     if (isLocked) {
@@ -45,7 +47,22 @@ function Navbar() {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto">
+            <ul className="navbar-nav ms-auto align-items-center">
+              {/* Toggle de tema */}
+              <li className="nav-item me-3">
+                <div className="theme-toggle-container">
+                  <i className={`bi ${theme === 'light' ? 'bi-sun-fill' : 'bi-moon-fill'} me-2`}></i>
+                  <label className="theme-toggle-label">
+                    <input
+                      type="checkbox"
+                      className="theme-toggle-input"
+                      checked={theme === 'dark'}
+                      onChange={toggleTheme}
+                    />
+                    <span className="theme-toggle-slider"></span>
+                  </label>
+                </div>
+              </li>
               <li className="nav-item">
                 <a 
                   className={`nav-link ${isLocked ? 'disabled opacity-75' : ''}`} 

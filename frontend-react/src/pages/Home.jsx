@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useTheme } from '../context/ThemeContext.jsx'
 
 function Home() {
+  const { theme } = useTheme()
+  
   useEffect(() => {
     // Inicializar Bootstrap JS para los accordions
     const script = document.createElement('script')
@@ -63,7 +66,14 @@ function Home() {
       </section>
 
       {/* Objetivo */}
-      <section id="objetivo" className="bg-light py-5">
+      <section 
+        id="objetivo" 
+        className="bg-light py-5"
+        style={theme === 'dark' ? {
+          backgroundColor: '#2d2d2d',
+          color: '#ffffff'
+        } : {}}
+      >
         <div className="container">
           <div className="row">
             <div className="col-lg-8 mx-auto">

@@ -7,13 +7,16 @@ import './index.css'
 import './utils/debug.js' // Cargar utilidades de debug
 import App from './App.jsx'
 import { FormLockProvider } from './context/FormLockContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <FormLockProvider>
-        <App />
-      </FormLockProvider>
+      <ThemeProvider>
+        <FormLockProvider>
+          <App />
+        </FormLockProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,
 )
