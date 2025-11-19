@@ -109,30 +109,30 @@ function PuntajesGrid({ puntajes, tipo = 'categoria', infoMap = {}, descripcionG
             />
             <button
               type="button"
-              className="btn btn-outline-secondary btn-sm px-3 mt-3"
+              className="btn btn-outline-secondary btn-sm px-3 mt-3 mb-2 detalles-toggle-btn"
               onClick={() => toggleDetalle(nombre)}
             >
               <i className={`bi ${detallesAbiertos[nombre] ? 'bi-chevron-up' : 'bi-chevron-down'} me-2`}></i>
               {detallesAbiertos[nombre] ? 'Ocultar detalles' : 'Ver detalles'}
             </button>
             {detallesAbiertos[nombre] && (
-              <div className="card shadow-sm border-primary mt-3">
-                <div className="card-body py-3">
-                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2">
-                    <h6 className="card-title mb-2 mb-md-0">
+              <div className="card shadow-sm border-primary mt-3 detalles-card">
+                <div className="card-body detalles-card-body">
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-start align-items-md-center mb-3">
+                    <h6 className="card-title mb-2 mb-md-0 detalles-title">
                       <i className="bi bi-info-circle me-2 text-primary"></i>
                       {nombre}
                     </h6>
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="badge bg-primary-subtle text-primary border border-primary">
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                      <span className="badge bg-primary-subtle text-primary border border-primary detalles-badge">
                         Puntaje: {valor} / {maximo}
                       </span>
-                      <span className="badge bg-secondary-subtle text-secondary border border-secondary">
+                      <span className="badge bg-secondary-subtle text-secondary border border-secondary detalles-badge">
                         Nivel: {nivel}
                       </span>
                     </div>
                   </div>
-                  <p className="card-text small mb-0 text-muted">
+                  <p className="card-text small mb-0 text-muted detalles-text">
                     {infoMap[nombre] || descripcionGenerica}
                   </p>
                 </div>
