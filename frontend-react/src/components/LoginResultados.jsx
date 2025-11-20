@@ -164,10 +164,9 @@ function LoginResultados({ onLogin, onCancel, tipoFormulario = 'entorno' }) {
                       const soloAlfanumerico = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)
                       setFormData({...formData, codigoAccesoResultados: soloAlfanumerico})
                     }}
-                    placeholder="Ingrese 8 caracteres alfanuméricos"
+                    placeholder="Ingrese el código de acceso (8 caracteres alfanuméricos)"
                     disabled={loading || isLocked}
                     maxLength={8}
-                    pattern="[A-Za-z0-9]{8}"
                   />
                   <small className="form-text text-muted">
                     Este código se proporcionó al registrar la empresa

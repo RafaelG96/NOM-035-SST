@@ -119,7 +119,7 @@ exports.verifyClave = async (req, res) => {
         const empresa = await Empresa.findOne({
             nombreEmpresa: nombreEmpresa.trim(),
             clave: String(clave).trim()
-        });
+        }).select('tipoFormulario cantidadEmpleados muestraRepresentativa contador preguntasRequeridas _id');
 
         if (!empresa) {
             return res.status(401).json({
@@ -128,30 +128,46 @@ exports.verifyClave = async (req, res) => {
             });
         }
 
-        // Verificar límite solo para empresas grandes
-        if (empresa.tipoFormulario === 'completo' && empresa.contador >= empresa.muestraRepresentativa) {
-            return res.status(403).json({
-                success: false,
-                message: 'Límite de encuestas alcanzado para esta empresa',
-                limiteAlcanzado: true
-            });
+        // Verificar límite de encuestas según el tipo de formulario
+        if (empresa.tipoFormulario === 'completo') {
+            // Para empresas grandes: verificar contra muestra representativa
+            if (empresa.contador >= empresa.muestraRepresentativa) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Límite de encuestas alcanzado. Se han completado ${empresa.contador} de ${empresa.muestraRepresentativa} encuestas requeridas.`,
+                    limiteAlcanzado: true,
+                    completadas: empresa.contador,
+                    limite: empresa.muestraRepresentativa
+                });
+            }
+        } else {
+            // Para empresas pequeñas: verificar contra cantidad de empleados
+            if (empresa.contador >= empresa.cantidadEmpleados) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Límite de encuestas alcanzado. Se han completado ${empresa.contador} de ${empresa.cantidadEmpleados} encuestas requeridas.`,
+                    limiteAlcanzado: true,
+                    completadas: empresa.contador,
+                    limite: empresa.cantidadEmpleados
+                });
+            }
         }
 
-        // Preparar datos de respuesta
+        // Preparar datos de respuesta (NO incrementar contador aquí, solo al guardar la respuesta)
         const responseData = {
             success: true,
             message: 'Acceso autorizado',
             empresaId: empresa._id,
-            contadorActual: empresa.contador + 1,
+            contadorActual: empresa.contador,
             tipoFormulario: empresa.tipoFormulario,
             preguntasRequeridas: empresa.preguntasRequeridas,
-            totalPreguntas: empresa.preguntasRequeridas.length
+            totalPreguntas: empresa.preguntasRequeridas.length,
+            limiteEncuestas: empresa.tipoFormulario === 'completo' 
+                ? empresa.muestraRepresentativa 
+                : empresa.cantidadEmpleados
         };
 
-        // Incrementar contador (pero no esperar para responder)
-        empresa.contador += 1;
-        empresa.save().catch(err => console.error('Error al actualizar contador:', err));
-
+        // NO incrementar contador aquí - solo se incrementa cuando se guarda exitosamente la respuesta
         res.json(responseData);
 
     } catch (error) {

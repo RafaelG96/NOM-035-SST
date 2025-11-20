@@ -49,13 +49,38 @@ const guardarRespuesta = async (req, res) => {
       });
     }
 
-    // Verificar que la empresa existe
-    const empresaExiste = await Empresa.exists({ _id: empresaId });
-    if (!empresaExiste) {
+    // Verificar que la empresa existe y obtener información
+    const empresa = await Empresa.findById(empresaId).select('tipoFormulario cantidadEmpleados muestraRepresentativa contador');
+    if (!empresa) {
       return res.status(404).json({
         success: false,
         error: 'La empresa especificada no existe'
       });
+    }
+
+    // Verificar límite de encuestas según el tipo de formulario
+    if (empresa.tipoFormulario === 'completo') {
+      // Para empresas grandes: verificar contra muestra representativa
+      if (empresa.contador >= empresa.muestraRepresentativa) {
+        return res.status(403).json({
+          success: false,
+          error: `Límite de encuestas alcanzado. Se han completado ${empresa.muestraRepresentativa} de ${empresa.muestraRepresentativa} encuestas requeridas.`,
+          limiteAlcanzado: true,
+          completadas: empresa.contador,
+          limite: empresa.muestraRepresentativa
+        });
+      }
+    } else {
+      // Para empresas pequeñas: verificar contra cantidad de empleados
+      if (empresa.contador >= empresa.cantidadEmpleados) {
+        return res.status(403).json({
+          success: false,
+          error: `Límite de encuestas alcanzado. Se han completado ${empresa.contador} de ${empresa.cantidadEmpleados} encuestas requeridas.`,
+          limiteAlcanzado: true,
+          completadas: empresa.contador,
+          limite: empresa.cantidadEmpleados
+        });
+      }
     }
 
     // Conversión a booleanos
@@ -142,6 +167,13 @@ const guardarRespuesta = async (req, res) => {
     });
 
     await nuevaRespuesta.save();
+    
+    // Incrementar contador de la empresa después de guardar exitosamente (operación atómica)
+    await Empresa.findByIdAndUpdate(
+      empresaId,
+      { $inc: { contador: 1 } },
+      { new: true }
+    );
     
     console.log('Respuesta guardada exitosamente:', {
       respuestaId: nuevaRespuesta._id,

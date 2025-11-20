@@ -26,6 +26,42 @@ const guardarRespuesta = async (req, res) => {
   }
 
   try {
+    // Verificar que la empresa existe y obtener información
+    const Empresa = mongoose.model('Empresa');
+    const empresa = await Empresa.findById(empresaId).select('tipoFormulario cantidadEmpleados muestraRepresentativa contador');
+    
+    if (!empresa) {
+      return res.status(404).json({
+        success: false,
+        error: 'La empresa especificada no existe'
+      });
+    }
+
+    // Verificar límite de encuestas según el tipo de formulario
+    if (empresa.tipoFormulario === 'completo') {
+      // Para empresas grandes: verificar contra muestra representativa
+      if (empresa.contador >= empresa.muestraRepresentativa) {
+        return res.status(403).json({
+          success: false,
+          error: `Límite de encuestas alcanzado. Se han completado ${empresa.muestraRepresentativa} de ${empresa.muestraRepresentativa} encuestas requeridas.`,
+          limiteAlcanzado: true,
+          completadas: empresa.contador,
+          limite: empresa.muestraRepresentativa
+        });
+      }
+    } else {
+      // Para empresas pequeñas: verificar contra cantidad de empleados
+      if (empresa.contador >= empresa.cantidadEmpleados) {
+        return res.status(403).json({
+          success: false,
+          error: `Límite de encuestas alcanzado. Se han completado ${empresa.contador} de ${empresa.cantidadEmpleados} encuestas requeridas.`,
+          limiteAlcanzado: true,
+          completadas: empresa.contador,
+          limite: empresa.cantidadEmpleados
+        });
+      }
+    }
+
     // Validar preguntas obligatorias (1-40)
     const obligatorias = Array.from({ length: 40 }, (_, i) => `pregunta${i + 1}`);
     const faltantes = obligatorias.filter(p => !(p in preguntas));
@@ -61,6 +97,13 @@ const guardarRespuesta = async (req, res) => {
       })),
       recomendaciones: resultado.recomendaciones
     });
+
+    // Incrementar contador de la empresa después de guardar exitosamente (operación atómica)
+    await Empresa.findByIdAndUpdate(
+      empresaId,
+      { $inc: { contador: 1 } },
+      { new: true }
+    );
 
     res.status(201).json({
       success: true,
