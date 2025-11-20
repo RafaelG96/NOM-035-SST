@@ -5,30 +5,81 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Arial', 'Helvetica', 'Verdana', 'Tahoma', sans-serif;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
   font-size: 1.1rem; /* Aumentar tamaño de fuente base */
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 html {
   font-size: 16px; /* Tamaño base más grande */
 }
 
-/* Aumentar tamaños de fuente en elementos comunes */
-h1 { font-size: 2.5rem; }
-h2 { font-size: 2rem; }
-h3 { font-size: 1.75rem; }
-h4 { font-size: 1.5rem; }
-h5 { font-size: 1.25rem; }
-h6 { font-size: 1.1rem; }
-p { font-size: 1.1rem; }
-label { font-size: 1.1rem; }
-.btn { font-size: 1.1rem; }
-.nav-link { font-size: 1.1rem; }
-.navbar-brand { font-size: 1.3rem; }
+/* Aumentar tamaños de fuente en elementos comunes - Optimizado para proyectores */
+h1 { 
+  font-size: 2.8rem !important; 
+  font-weight: 800 !important;
+  font-family: 'Arial Black', 'Arial', 'Helvetica', sans-serif !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1.3 !important;
+}
+h2 { 
+  font-size: 2.3rem !important; 
+  font-weight: 800 !important;
+  font-family: 'Arial', 'Helvetica', sans-serif !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.4 !important;
+}
+h3 { 
+  font-size: 1.9rem !important; 
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.4 !important;
+}
+h4 { 
+  font-size: 1.6rem !important; 
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.5 !important;
+}
+h5 { 
+  font-size: 1.4rem !important; 
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.5 !important;
+}
+h6 { 
+  font-size: 1.25rem !important; 
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+}
+p { 
+  font-size: 1.2rem !important; 
+  font-weight: 500 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.01em !important;
+}
+label { 
+  font-size: 1.2rem !important; 
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+}
+.btn { 
+  font-size: 1.2rem !important; 
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+}
+.nav-link { 
+  font-size: 1.15rem !important; 
+  font-weight: 500 !important;
+}
+.navbar-brand { 
+  font-size: 1.4rem !important; 
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+}
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
@@ -41,6 +92,299 @@ code {
   color: white;
   padding: 100px 0;
   text-align: center;
+}
+
+/* Estilos mejorados para página principal - mejor legibilidad en proyecciones */
+.home-hero {
+  padding: 120px 0 !important;
+}
+
+.home-hero h1 {
+  font-family: 'Arial Black', 'Arial', 'Helvetica', sans-serif !important;
+  font-size: 4.5rem !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(0, 0, 0, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.5),
+    1px 1px 0 rgba(0, 0, 0, 0.5) !important;
+  text-stroke: 1px rgba(0, 0, 0, 0.3);
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.3);
+}
+
+.home-hero .lead {
+  font-size: 2.25rem !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0.03em !important;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.4),
+    0 0 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.home-section {
+  padding: 60px 0 !important;
+}
+
+.home-title {
+  font-family: 'Arial Black', 'Arial', 'Helvetica', sans-serif !important;
+  font-size: 3.5rem !important;
+  font-weight: 900 !important;
+  margin-bottom: 2.5rem !important;
+  line-height: 1.3 !important;
+  letter-spacing: 0.04em !important;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.2),
+    0 0 8px rgba(0, 0, 0, 0.1) !important;
+  color: #1a1a1a !important;
+}
+
+[data-theme="dark"] .home-title {
+  color: #ffffff !important;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.home-card {
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px !important;
+}
+
+.home-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.home-card .card-title {
+  font-family: 'Arial', 'Helvetica', sans-serif !important;
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0.02em !important;
+  color: #1a1a1a !important;
+}
+
+[data-theme="dark"] .home-card .card-title {
+  color: #ffffff !important;
+}
+
+.home-card .card-text {
+  font-size: 1.4rem !important;
+  font-weight: 600 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.01em !important;
+  color: #2d2d2d !important;
+}
+
+[data-theme="dark"] .home-card .card-text {
+  color: #e0e0e0 !important;
+}
+
+.home-card ul {
+  line-height: 1.9 !important;
+}
+
+.home-card ul li {
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.75rem !important;
+  letter-spacing: 0.01em !important;
+  color: #2d2d2d !important;
+}
+
+[data-theme="dark"] .home-card ul li {
+  color: #e0e0e0 !important;
+}
+
+.home-cta {
+  padding: 80px 0 !important;
+}
+
+.home-cta h2 {
+  font-family: 'Arial Black', 'Arial', 'Helvetica', sans-serif !important;
+  font-size: 4rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(0, 0, 0, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.5),
+    1px 1px 0 rgba(0, 0, 0, 0.5) !important;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.3);
+}
+
+.home-cta .lead {
+  font-size: 2.25rem !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0.03em !important;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.4),
+    0 0 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Aumentar tamaños de fuente en listas y tablas de la página principal */
+.home-section .list-group-item {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  padding: 1.25rem 1.75rem !important;
+  letter-spacing: 0.01em !important;
+}
+
+.home-section .table {
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+}
+
+.home-section .table th {
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.home-section .table th,
+.home-section .table td {
+  padding: 1.25rem !important;
+  vertical-align: middle !important;
+}
+
+.home-section .alert {
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+  line-height: 1.8 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.home-section .alert h4 {
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Mejorar espaciado general */
+.home-section p {
+  font-size: 1.4rem !important;
+  font-weight: 600 !important;
+  line-height: 1.9 !important;
+  margin-bottom: 1.5rem !important;
+  letter-spacing: 0.01em !important;
+  color: #2d2d2d !important;
+}
+
+[data-theme="dark"] .home-section p {
+  color: #e0e0e0 !important;
+}
+
+/* Mejoras adicionales para legibilidad en proyectores */
+.home-section {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.home-hero *,
+.home-section *,
+.home-card * {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+/* Asegurar contraste máximo en botones */
+.home-hero .btn,
+.home-cta .btn {
+  font-weight: 800 !important;
+  letter-spacing: 0.03em !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Mejoras globales para todos los elementos - Optimizado para proyectores */
+* {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
+}
+
+/* Mejoras para textarea */
+textarea.form-control {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.6 !important;
+  padding: 0.75rem 1rem !important;
+}
+
+/* Mejoras para inputs de tipo number, email, text, etc */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="date"],
+input[type="time"] {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Mejoras para checkboxes y radio buttons */
+.form-check-label {
+  font-size: 1.15rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.6 !important;
+}
+
+.form-check-input {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* Mejoras para navegación */
+.navbar {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.navbar-nav .nav-link {
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Estilos para códigos en modales - Compatible con modo oscuro */
+.code-display {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  font-family: 'Courier New', monospace !important;
+  border: 1px solid #dee2e6 !important;
+  min-width: 120px !important;
+  text-align: center !important;
+}
+
+[data-theme="dark"] .code-display {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Mejoras para footer */
+footer {
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+footer a {
+  font-weight: 500 !important;
 }
 
 .data-protection {
@@ -64,15 +408,137 @@ footer a:hover {
   color: #ccc;
 }
 
-/* Estilos para formularios */
+/* Estilos para formularios - Optimizado para proyectores */
 .form-section {
   padding: 40px 0;
+}
+
+.form-control {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  padding: 0.75rem 1rem !important;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.form-select {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  padding: 0.75rem 1rem !important;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.form-label {
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.form-text {
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Mejoras para alertas */
+.alert {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.01em !important;
+  padding: 1.25rem 1.5rem !important;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.alert-heading {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.alert p {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Mejoras para badges */
+.badge {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  padding: 0.5rem 0.75rem !important;
+}
+
+/* Mejoras para tablas */
+.table {
+  font-size: 1.15rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.table th {
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  padding: 1rem !important;
+}
+
+.table td {
+  font-size: 1.15rem !important;
+  font-weight: 500 !important;
+  padding: 0.875rem 1rem !important;
+}
+
+/* Mejoras para listas */
+.list-group-item {
+  font-size: 1.15rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.6 !important;
+  padding: 0.875rem 1.25rem !important;
+}
+
+ul li, ol li {
+  font-size: 1.15rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.7 !important;
+  margin-bottom: 0.5rem !important;
 }
 
 .card {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   border: none;
   margin-bottom: 20px;
+}
+
+/* Mejoras de tipografía para cards - Optimizado para proyectores */
+.card-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.4 !important;
+}
+
+.card-text {
+  font-size: 1.15rem !important;
+  font-weight: 500 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.card-body {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
 }
 
 .btn-primary {
@@ -385,6 +851,54 @@ footer a:hover {
   color: var(--text-primary) !important;
 }
 
+/* Mejoras de tipografía para modales - Optimizado para proyectores */
+.modal-title {
+  font-size: 1.8rem !important;
+  font-weight: 800 !important;
+  font-family: 'Arial', 'Helvetica', sans-serif !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.3 !important;
+}
+
+.modal-body {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.01em !important;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.modal-body p {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  line-height: 1.7 !important;
+  margin-bottom: 1rem !important;
+}
+
+.modal-body .btn {
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  padding: 0.75rem 1.5rem !important;
+}
+
+.modal-header {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.modal-footer {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+.modal-footer .btn {
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+}
+
 [data-theme="dark"] .modal-backdrop {
   background-color: rgba(0, 0, 0, 0.7) !important;
 }
@@ -477,6 +991,45 @@ footer a:hover {
 
 [data-theme="dark"] .hero-section h1,
 [data-theme="dark"] .hero-section p {
+  color: var(--text-primary) !important;
+}
+
+/* Estilos para modo oscuro en página principal */
+[data-theme="dark"] .home-card {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .home-card .card-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .home-card .card-text {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .home-card ul li {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .home-section .list-group-item {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .home-section .table {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .home-section .table th {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .home-section .table td {
+  background-color: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
 }
 
@@ -785,89 +1338,144 @@ footer a:hover {
 
 /* Aumentar tamaño de fuente en páginas de resultados */
 .container.py-5 {
-  font-size: 1.15rem;
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
 }
 
 .container.py-5 h1,
 .container.py-5 .h1 {
-  font-size: 2rem;
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+  font-family: 'Arial Black', 'Arial', 'Helvetica', sans-serif !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1.3 !important;
 }
 
 .container.py-5 h2,
 .container.py-5 .h2 {
-  font-size: 1.75rem;
+  font-size: 2.1rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.4 !important;
 }
 
 .container.py-5 h3,
 .container.py-5 .h3 {
-  font-size: 1.5rem;
+  font-size: 1.8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.4 !important;
 }
 
 .container.py-5 h4,
 .container.py-5 .h4 {
-  font-size: 1.35rem;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.5 !important;
 }
 
 .container.py-5 h5,
 .container.py-5 .h5 {
-  font-size: 1.25rem;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.5 !important;
 }
 
 .container.py-5 h6,
 .container.py-5 .h6 {
-  font-size: 1.15rem;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
 }
 
 .container.py-5 .card-title {
-  font-size: 1.25rem;
+  font-size: 1.4rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.4 !important;
 }
 
 .container.py-5 .card-text {
-  font-size: 1.1rem;
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.01em !important;
 }
 
 .container.py-5 .form-label {
-  font-size: 1.15rem;
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
 }
 
 .container.py-5 .form-select {
-  font-size: 1.15rem;
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
 }
 
 .container.py-5 .btn {
-  font-size: 1.1rem;
-  padding: 0.6rem 1.2rem;
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  padding: 0.75rem 1.5rem !important;
 }
 
 .container.py-5 .badge {
-  font-size: 1rem;
-  padding: 0.5rem 0.75rem;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  padding: 0.5rem 0.75rem !important;
 }
 
 .container.py-5 .donut-chart-title {
-  font-size: 1.15rem;
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
 }
 
 .container.py-5 .donut-chart-score {
-  font-size: 1.05rem;
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
 }
 
 .container.py-5 .donut-chart-action {
-  font-size: 1.05rem;
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
 }
 
 .container.py-5 .donut-chart-badge {
-  font-size: 1.05rem;
-  padding: 0.5rem 0.75rem;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  padding: 0.6rem 0.9rem !important;
 }
 
 .container.py-5 .puntaje-display {
-  font-size: 1.1rem;
-  padding: 0.4rem 0.8rem;
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  padding: 0.5rem 1rem !important;
 }
 
 .container.py-5 small {
-  font-size: 1rem;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.container.py-5 p {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.01em !important;
 }
 
 /* Estilos adicionales para modo oscuro en resultados */

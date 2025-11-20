@@ -154,7 +154,7 @@ function RegistroEmpresa() {
       doc.setFontSize(11)
       doc.setFont(undefined, 'bold')
       doc.setTextColor(211, 47, 47)
-      addText(doc, '⚠️ IMPORTANTE', 15, y + 8)
+      addText(doc, 'IMPORTANTE', 15, y + 8)
       
       doc.setFontSize(9)
       doc.setFont(undefined, 'normal')
@@ -162,9 +162,9 @@ function RegistroEmpresa() {
       y += 10
       addText(doc, '• Guarde este documento en un lugar seguro', 15, y)
       y += 6
-      addText(doc, '• No comparta el código de acceso a resultados con personal no autorizado', 15, y)
+      addText(doc, '• No comparta el codigo de acceso a resultados con personal no autorizado', 15, y)
       y += 6
-      addText(doc, '• Estos datos no se podrán modificar después de guardar', 15, y)
+      addText(doc, '• Estos datos no se podran modificar despues de guardar', 15, y)
 
       // Pie de página
       y = 280
@@ -499,13 +499,13 @@ function RegistroEmpresa() {
                         <div className="col-md-6 mb-2">
                           <small className="text-muted">Clave Asignada (Para empleados)</small>
                           <div className="fw-bold">
-                            <code className="bg-light p-1 rounded">{modalData.clave}</code>
+                            <code className="code-display p-2 rounded d-inline-block">{modalData.clave}</code>
                           </div>
                         </div>
                         <div className="col-md-6 mb-2">
                           <small className="text-muted">Código de Acceso a Resultados</small>
                           <div className="fw-bold">
-                            <code className="bg-light p-1 rounded">{modalData.codigoAccesoResultados}</code>
+                            <code className="code-display p-2 rounded d-inline-block">{modalData.codigoAccesoResultados}</code>
                           </div>
                           <small className="text-warning">
                             <i className="bi bi-exclamation-triangle me-1"></i>
@@ -517,14 +517,6 @@ function RegistroEmpresa() {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn btn-danger"
-                    onClick={handleDescargarClavesPDF}
-                    title="Descargar credenciales en PDF"
-                  >
-                    <i className="bi bi-file-pdf me-2"></i>Descargar PDF
-                  </button>
                   <button 
                     type="button" 
                     className="btn btn-outline-secondary"
@@ -539,12 +531,15 @@ function RegistroEmpresa() {
                     type="button" 
                     className="btn btn-primary"
                     onClick={() => {
+                      // Descargar PDF automáticamente
+                      handleDescargarClavesPDF()
+                      // Cerrar modal y navegar
                       setShowModal(false)
                       setModalData(null)
                       navigate('/intermedio')
                     }}
                   >
-                    Confirmar y Continuar
+                    <i className="bi bi-check-circle me-2"></i>Aceptar y Guardar
                   </button>
                 </div>
               </div>
